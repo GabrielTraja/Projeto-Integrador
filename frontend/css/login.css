@@ -1,0 +1,65 @@
+/* Centraliza a caixa de login no meio da página e define o fundo geral */
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f4f8; /* Fundo levemente acinzentado/azulado */
+    font-family: Arial, sans-serif;
+}
+
+/* Estilização da caixa de login */
+#caixaLogin {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaçamento automático entre os elementos */
+}
+
+/* Título 'Login' */
+#caixaLogin p {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #0056b3;
+    text-align: center;
+}
+
+/* Campos de input */
+.inputLogin {
+    padding: 12px;
+    border: 1px solid #bce0fd; /* Borda em tom azul claro */
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Efeito ao clicar no input */
+.inputLogin:focus {
+    border-color: #3399ff;
+    box-shadow: 0 0 5px rgba(51, 153, 255, 0.3);
+}
+
+/* Botão de login */
+#botaoLogin {
+    padding: 12px;
+    background-color: #3399ff; /* Azul claro vibrante */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Efeito hover (passar o mouse) no botão */
+#botaoLogin:hover {
+    background-color: #0077e6;
+}
