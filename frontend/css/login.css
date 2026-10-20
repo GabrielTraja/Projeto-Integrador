@@ -1,55 +1,87 @@
-/* Centraliza a caixa de login no meio da página e define o fundo geral */
+/* Reset básico e box-sizing */
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f0f4f8; /* Fundo levemente acinzentado/azulado */
+    background-color: #f0f4f8;
     font-family: Arial, sans-serif;
+    padding: 40px 20px; 
 }
 
-/* Estilização da caixa de login */
+/* Container da caixa de Login / Cadastro */
 #caixaLogin {
     background-color: #ffffff;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Espaçamento automático entre os elementos */
+    width: 100%;
+    max-width: 400px;
 }
 
-/* Título 'Login' */
+/* Título 'Login' ou 'Cadastro' */
 #caixaLogin p {
-    margin: 0 0 10px 0;
+    margin: 0 0 15px 0;
     font-size: 24px;
     font-weight: bold;
     color: #0056b3;
     text-align: center;
 }
 
-/* Campos de input */
+/* Formulário organizado com Flexbox */
+#caixaLogin form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Rótulos (Labels) */
+#caixaLogin form label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333333;
+    margin-top: 4px;
+}
+
+/* Campos de entrada (Inputs) */
 .inputLogin {
-    padding: 12px;
-    border: 1px solid #bce0fd; /* Borda em tom azul claro */
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #bce0fd;
     border-radius: 6px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Efeito ao clicar no input */
+/* Efeito ao focar no input */
 .inputLogin:focus {
     border-color: #3399ff;
     box-shadow: 0 0 5px rgba(51, 153, 255, 0.3);
 }
 
-/* Botão de login */
+/* Remove setas do input do tipo number (Telefone) */
+.inputLogin[type="number"]::-webkit-outer-spin-button,
+.inputLogin[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.inputLogin[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Botão ('Login' ou 'Cadastrar') */
 #botaoLogin {
+    width: 100%;
+    margin-top: 10px;
     padding: 12px;
-    background-color: #3399ff; /* Azul claro vibrante */
+    background-color: #3399ff;
     color: white;
     border: none;
     border-radius: 6px;
@@ -59,7 +91,21 @@ body {
     transition: background-color 0.2s;
 }
 
-/* Efeito hover (passar o mouse) no botão */
 #botaoLogin:hover {
     background-color: #0077e6;
+}
+
+/* Link */
+#caixaLogin form a {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #0077e6;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+#caixaLogin form a:hover {
+    text-decoration: underline;
+    color: #0056b3;
 }

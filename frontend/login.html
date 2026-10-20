@@ -10,9 +10,16 @@
 <body>
     <div id="caixaLogin">
         <p>Login</p>
-        <input type="text" placeholder="Usuário" class="inputLogin"> 
-        <input type="password" placeholder="Senha" class="inputLogin">
-        <button id="botaoLogin">Login</button>
+        <form action="" method="post">
+            <label for="usuario">Usuario:</label>
+            <input type="text" placeholder="Digite o seu usuário" class="inputLogin">
+            
+            <label for="senha">Senha:</label>
+            <input type="password" placeholder="Digite a sua senha" class="inputLogin">
+
+            <button type="submit" id="botaoLogin">Login</button>
+            <a href="cadastroUsuario.html">Não tem Login?</a>
+        </form>
     </div>
 </body>
 </html>
