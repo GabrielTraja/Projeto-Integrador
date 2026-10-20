@@ -1,0 +1,218 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  display: flex;
+  background-color: #f4f6f9; /* Fundo geral da página */
+  min-height: 100vh;
+}
+
+/* Cabeçalho Superior */
+.top-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #0f172a; /* Tom de azul escuro */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 0 30px;
+  
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  z-index: 100; /* Garante ficar por cima de tudo */
+}
+
+/* Nome da Empresa */
+.company-name span {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Área do Usuário */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+/* Botão de Logout */
+.btn-logout {
+  background-color: #ef4444;
+  color: white;
+  text-decoration: none;
+  padding: 6px 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #dc2626;
+}
+
+/* Menu Lateral */
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #e2e8f0; 
+  border-right: 1px solid #cbd5e1; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  z-index: 99; /* Logo abaixo do cabeçalho */
+}
+
+.menu-list {
+  list-style: none;
+  margin-top: 60px; /* Joga os itens para baixo do cabeçalho */
+}
+
+/* Itens do Menu (Imagem + Link) */
+.menu-list li {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+
+.menu-list li:hover {
+  background-color: #cbd5e1;
+}
+
+/* Ícones do Menu */
+.menu-list li img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 15px;
+}
+
+/* Link das Opções */
+.menu-list li a {
+  flex: 1;
+  display: block;
+  color: #1e293b; 
+  text-decoration: none;
+  padding: 15px 0;
+  font-weight: 600;
+}
+
+.content {
+  flex: 1;
+  margin-left: 250px; /* Empurra o conteúdo para o lado do menu lateral */
+  margin-top: 60px;   /* Empurra o conteúdo para baixo do cabeçalho */
+  padding: 40px;
+}
+
+/* Seção de Boas-Vindas */
+.welcome-section {
+  margin-bottom: 30px;
+}
+
+.welcome-section h1 {
+  color: #1e293b;
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.welcome-section p {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* Container que alinha os cartões lado a lado */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Ajustado o mínimo para 280px */
+  gap: 20px; 
+  width: 100%;
+}
+
+/* Estilização individual de cada Cartão */
+.card-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Área do Ícone dentro do Cartão */
+.card-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #f1f5f9; 
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.card-icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* Título da Função */
+.card-item h5 {
+  font-size: 1.1rem;
+  color: #0f172a;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Descrição da Função */
+.card-item p {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  flex: 1; 
+}
+
+/* Botão de Acesso */
+.btn-card {
+  width: 100%;
+  background-color: #0f172a; 
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-card:hover {
+  background-color: #1e293b; 
+}

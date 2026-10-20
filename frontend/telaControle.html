@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle</title>
+    <link rel="stylesheet" href="css/telaControle.css">
+</head>
+<body>
+
+    <!-- Cabeçalho Superior -->
+    <header class="top-header">
+        <div class="company-name">
+            <span>Minha Empresa</span>
+        </div>
+        
+        <div class="user-profile">
+            <span class="user-name">Ciclano do Teste</span>
+            <a href="#" class="btn-logout">Sair</a>
+        </div>
+    </header>
+    
+    <!-- Menu Lateral -->
+    <nav class="sidebar">
+        <ul class="menu-list">
+            <li><img src="icones/inicio.png" alt="inicio"><a href="#">Início</a></li>
+            <li><img src="icones/pdv.png" alt="PDV"><a href="#">PDV</a></li>
+            <li><img src="icones/caixa.png" alt="Caixa"><a href="#">Caixa</a></li>
+            <li><img src="icones/estoque.png" alt="Estoque"><a href="#">Estoque</a></li>
+            <li><img src="icones/produtos.png" alt="Produtos"><a href="#">Produtos</a></li>
+            <li><img src="icones/usuarios.png" alt="Usuarios"><a href="#">Usuários</a></li>
+            <li><img src="icones/relatorio.png" alt="Relatorios"><a href="#">Relatórios</a></li>
+            <li><img src="icones/configuracao.png" alt="Configurações"><a href="#">Configurações</a></li>
+        </ul>
+    </nav>
+
+        <main class="content">
+        <div class="welcome-section">
+            <h1>Bem-vindo, {Ciclano do Teste}</h1>
+            <p>Selecione uma opção para acessar as funções do sistema:</p>
+        </div>
+
+        <!-- Container dos Cartões de Função -->
+        <div class="cards-grid">
+            
+            <!-- Card PDV -->
+            <div class="card-item">
+                <div class="card-icon">
+                    <img src="icones/pdv.png" alt="PDV">
+                </div>
+                <h5>PDV</h5>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <button class="btn-card">Acessar PDV</button>
+            </div>
+
+            <!-- Card Caixa -->
+            <div class="card-item">
+                <div class="card-icon">
+                    <img src="icones/caixa.png" alt="Caixa">
+                </div>
+                <h5>Controle de Caixa</h5>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <button class="btn-card">Acessar Caixa</button>
+            </div>
+
+            <!-- Card Estoque -->
+            <div class="card-item">
+                <div class="card-icon">
+                    <img src="icones/estoque.png" alt="Estoque">
+                </div>
+                <h5>Controle de Estoque</h5>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <button class="btn-card">Acessar Estoque</button>
+            </div>
+
+            <!-- Card Usuários -->
+            <div class="card-item">
+                <div class="card-icon">
+                    <img src="icones/usuarios.png" alt="Usuários">
+                </div>
+                <h5>Cadastro de Usuários</h5>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <button class="btn-card">Acessar Usuários</button>
+            </div>
+
+            <!-- Card Produtos -->
+            <div class="card-item">
+                <div class="card-icon">
+                    <img src="icones/produtos.png" alt="Produtos">
+                </div>
+                <h5>Cadastrar Produtos</h5>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <button class="btn-card">Acessar Produtos</button>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
