@@ -1,0 +1,15 @@
+{
+  "name": "projeto-integrador-pdv",
+  "version": "1.0.0",
+  "description": "Sistema de Ponto de Venda (PDV) - Frontend e Backend Integrados",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "init-db": "node backend/src/config/initDb.js"
+  },
+  "keywords": ["pdv", "express", "mysql", "javascript", "fullstack"],
+  "author": "",
+  "license": "ISC"
+}
+

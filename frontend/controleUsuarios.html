@@ -3,34 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Usuários</title>
+    <title>Controle de Usuários - PDV Sistema</title>
+    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/controleUsuarios.css">
 </head>
-<body>
+<body class="layout-dashboard">
     
     <!-- Cabeçalho Superior -->
     <header class="top-header">
         <div class="company-name">
             <span>Minha Empresa</span>
+            <span class="badge-pdv">PDV Pro</span>
         </div>
         
         <div class="user-profile">
-            <span class="user-name">Ciclano do Teste</span>
-            <a href="#" class="btn-logout">Sair</a>
+            <span class="user-name">Carregando...</span>
+            <button class="btn-logout">Sair</button>
         </div>
     </header>
     
     <!-- Menu Lateral -->
     <nav class="sidebar">
         <ul class="menu-list">
-            <li><a href="#"><img src="icones/inicio.png" alt="">Início</a></li>
-            <li><a href="#"><img src="icones/pdv.png" alt="">PDV</a></li>
-            <li><a href="#"><img src="icones/caixa.png" alt="">Caixa</a></li>
-            <li><a href="#"><img src="icones/estoque.png" alt="">Estoque</a></li>
-            <li><a href="#"><img src="icones/produtos.png" alt="">Produtos</a></li>
-            <li><a href="#" class="active"><img src="icones/usuarios.png" alt="">Usuários</a></li>
-            <li><a href="#"><img src="icones/relatorio.png" alt="">Relatórios</a></li>
-            <li><a href="#"><img src="icones/configuracao.png" alt="">Configurações</a></li>
+            <li><a href="telaControle.html"><img src="icones/inicio.png" alt="Início"><span>Início</span></a></li>
+            <li><a href="#"><img src="icones/pdv.png" alt="PDV"><span>PDV</span></a></li>
+            <li><a href="#"><img src="icones/caixa.png" alt="Caixa"><span>Caixa</span></a></li>
+            <li><a href="controleEstoque.html"><img src="icones/estoque.png" alt="Estoque"><span>Estoque</span></a></li>
+            <li><a href="cadastroProdutos.html"><img src="icones/produtos.png" alt="Produtos"><span>Produtos</span></a></li>
+            <li><a href="controleUsuarios.html" class="active"><img src="icones/usuarios.png" alt="Usuários"><span>Usuários</span></a></li>
+            <li><a href="#"><img src="icones/relatorio.png" alt="Relatórios"><span>Relatórios</span></a></li>
+            <li><a href="#"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
         </ul>
     </nav>
 
@@ -38,23 +40,23 @@
     <main class="content">
         <div class="welcome-section">
             <h1>Gerenciamento de Usuários</h1>
-            <p>Consulte, adicione e gerencie as permissões de acesso dos usuários do sistema.</p>
+            <p>Consulte, adicione, atualize e gerencie os níveis de acesso e operadores do sistema.</p>
         </div>
 
         <!-- Seção de Filtros e Busca -->
         <div class="filter-container">
-            <form class="search-form" action="" method="GET">
+            <form class="search-form" onsubmit="event.preventDefault(); carregarDados();">
                 <div class="form-group search-input-group">
-                    <input type="text" id="buscarUsuario" name="busca" placeholder="Buscar por nome ou e-mail..." class="input-search">
+                    <input type="text" id="buscarUsuario" placeholder="Buscar por nome, login ou e-mail..." class="input-search">
                 </div>
 
                 <div class="form-group">
-                    <select id="tipoUsuario" name="tipo" class="select-category">
-                        <option value="">Todos os Tipos</option>
-                        <option value="admin">Administrador</option>
-                        <option value="gerente">Gerente</option>
-                        <option value="caixa">Operador de Caixa</option>
-                        <option value="estoquista">Estoquista</option>
+                    <select id="tipoUsuario" class="select-category">
+                        <option value="">Todos os Perfis</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Gerente">Gerente</option>
+                        <option value="Operador de Caixa">Operador de Caixa</option>
+                        <option value="Estoquista">Estoquista</option>
                     </select>
                 </div>
 
@@ -69,8 +71,8 @@
             <table class="stock-table">
                 <thead>
                     <tr>
-                        <th>Foto</th>
-                        <th>Nome</th>
+                        <th>Avatar</th>
+                        <th>Nome / Login</th>
                         <th>E-mail</th>
                         <th>Perfil / Tipo</th>
                         <th>Status</th>
@@ -78,48 +80,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Usuário 1 (Administrador / Ativo) -->
                     <tr>
-                        <td class="img-cell">
-                            <img src="uploads/usuario1.jpg" alt="Foto de Ciclano do Teste" class="product-img">
-                        </td>
-                        <td class="product-name">Ciclano do Teste</td>
-                        <td>ciclano@empresa.com</td>
-                        <td><span class="user-role role-admin">Administrador</span></td>
-                        <td><span class="status status-ok">Ativo</span></td>
-                        <td class="actions-cell">
-                            <a href="#" class="btn-action edit" title="Editar">✏️</a>
-                            <a href="#" class="btn-action delete" title="Excluir">🗑️</a>
-                        </td>
-                    </tr>
-
-                    <!-- Usuário 2 (Operador de Caixa / Ativo) -->
-                    <tr>
-                        <td class="img-cell">
-                            <img src="uploads/usuario2.jpg" alt="Foto de Fulana Silva" class="product-img">
-                        </td>
-                        <td class="product-name">Fulana Silva</td>
-                        <td>fulana.caixa@empresa.com</td>
-                        <td><span class="user-role role-caixa">Operador de Caixa</span></td>
-                        <td><span class="status status-ok">Ativo</span></td>
-                        <td class="actions-cell">
-                            <a href="#" class="btn-action edit" title="Editar">✏️</a>
-                            <a href="#" class="btn-action delete" title="Excluir">🗑️</a>
-                        </td>
-                    </tr>
-
-                    <!-- Usuário 3 (Estoquista / Inativo) -->
-                    <tr class="low-stock-row">
-                        <td class="img-cell">
-                            <img src="uploads/usuario3.jpg" alt="Foto de Beltrano de Souza" class="product-img">
-                        </td>
-                        <td class="product-name">Beltrano de Souza</td>
-                        <td>beltrano.estoque@empresa.com</td>
-                        <td><span class="user-role role-estoque">Estoquista</span></td>
-                        <td><span class="status status-warning">Inativo</span></td>
-                        <td class="actions-cell">
-                            <a href="#" class="btn-action edit" title="Editar">✏️</a>
-                            <a href="#" class="btn-action delete" title="Excluir">🗑️</a>
+                        <td colspan="6" style="text-align: center; padding: 25px; color: #64748b;">
+                            Carregando usuários do banco de dados...
                         </td>
                     </tr>
                 </tbody>
@@ -127,5 +90,8 @@
         </div>
     </main>
 
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/usuarios.js"></script>
 </body>
 </html>

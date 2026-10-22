@@ -1,4 +1,3 @@
-
 -- =====================================================
 -- BANCO DE DADOS: PDV - PONTO DE VENDA
 -- =====================================================
@@ -13,7 +12,7 @@ USE pdv;
 -- 1. TIPOS DE USUARIOS / PERFIS DE ACESSO
 -- =====================================================
 
-CREATE TABLE tipo_usuario (
+CREATE TABLE IF NOT EXISTS tipo_usuario (
     id_tipo_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) NOT NULL UNIQUE,
     descricao VARCHAR(255)
@@ -23,10 +22,13 @@ CREATE TABLE tipo_usuario (
 -- 2. USUARIOS
 -- =====================================================
 
-CREATE TABLE usuario (
+CREATE TABLE IF NOT EXISTS usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14),
     login VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100),
+    telefone VARCHAR(20),
     senha VARCHAR(255) NOT NULL,
     status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
     id_tipo_usuario INT NOT NULL,
@@ -41,7 +43,7 @@ CREATE TABLE usuario (
 -- 3. CATEGORIAS DE PRODUTOS
 -- =====================================================
 
-CREATE TABLE categoria (
+CREATE TABLE IF NOT EXISTS categoria (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL UNIQUE,
     descricao VARCHAR(255),
@@ -52,7 +54,7 @@ CREATE TABLE categoria (
 -- 4. PRODUTOS
 -- =====================================================
 
-CREATE TABLE produto (
+CREATE TABLE IF NOT EXISTS produto (
     id_produto INT AUTO_INCREMENT PRIMARY KEY,
     codigo_barras VARCHAR(50) UNIQUE,
     nome VARCHAR(150) NOT NULL,
@@ -64,6 +66,7 @@ CREATE TABLE produto (
     estoque_minimo DECIMAL(12,3) NOT NULL DEFAULT 0,
     unidade_medida VARCHAR(10) NOT NULL DEFAULT 'UN',
     status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
+    foto VARCHAR(255),
     id_categoria INT NOT NULL,
     data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -85,7 +88,7 @@ CREATE TABLE produto (
 -- 5. CAIXAS
 -- =====================================================
 
-CREATE TABLE caixa (
+CREATE TABLE IF NOT EXISTS caixa (
     id_caixa INT AUTO_INCREMENT PRIMARY KEY,
     data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_fechamento DATETIME,
@@ -115,7 +118,7 @@ CREATE TABLE caixa (
 -- 6. VENDAS
 -- =====================================================
 
-CREATE TABLE venda (
+CREATE TABLE IF NOT EXISTS venda (
     id_venda INT AUTO_INCREMENT PRIMARY KEY,
     data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     valor_subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -150,7 +153,7 @@ CREATE TABLE venda (
 -- 7. ITENS DA VENDA
 -- =====================================================
 
-CREATE TABLE item_venda (
+CREATE TABLE IF NOT EXISTS item_venda (
     id_item_venda INT AUTO_INCREMENT PRIMARY KEY,
     id_venda INT NOT NULL,
     id_produto INT NOT NULL,
@@ -182,7 +185,7 @@ CREATE TABLE item_venda (
 -- 8. FORMAS DE PAGAMENTO
 -- =====================================================
 
-CREATE TABLE forma_pagamento (
+CREATE TABLE IF NOT EXISTS forma_pagamento (
     id_forma_pagamento INT AUTO_INCREMENT PRIMARY KEY,
     descricao VARCHAR(50) NOT NULL UNIQUE,
     status ENUM('ATIVA', 'INATIVA') NOT NULL DEFAULT 'ATIVA'
@@ -190,11 +193,9 @@ CREATE TABLE forma_pagamento (
 
 -- =====================================================
 -- 9. PAGAMENTOS
--- Uma venda pode ter varios pagamentos.
--- Exemplo: parte em dinheiro e parte no cartao.
 -- =====================================================
 
-CREATE TABLE pagamento (
+CREATE TABLE IF NOT EXISTS pagamento (
     id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
     id_venda INT NOT NULL,
     id_forma_pagamento INT NOT NULL,
@@ -220,7 +221,7 @@ CREATE TABLE pagamento (
 -- 10. MOVIMENTACOES DE ESTOQUE
 -- =====================================================
 
-CREATE TABLE movimentacao_estoque (
+CREATE TABLE IF NOT EXISTS movimentacao_estoque (
     id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
     id_produto INT NOT NULL,
     id_usuario INT NOT NULL,
@@ -251,14 +252,27 @@ CREATE TABLE movimentacao_estoque (
 -- 11. DADOS INICIAIS: TIPOS DE USUARIO
 -- =====================================================
 
-INSERT INTO tipo_usuario (nome, descricao) VALUES
-('Administrador', 'Acesso administrativo ao sistema'),
-('Gerente', 'Gerenciamento da operacao e relatorios'),
-('Operador de Caixa', 'Registro de vendas e operacao do caixa'),
-('Estoquista', 'Cadastro, entrada e ajuste de estoque');
+INSERT INTO tipo_usuario (id_tipo_usuario, nome, descricao) VALUES
+(1, 'Administrador', 'Acesso administrativo ao sistema'),
+(2, 'Gerente', 'Gerenciamento da operacao e relatorios'),
+(3, 'Operador de Caixa', 'Registro de vendas e operacao do caixa'),
+(4, 'Estoquista', 'Cadastro, entrada e ajuste de estoque')
+ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 
 -- =====================================================
--- 12. DADOS INICIAIS: FORMAS DE PAGAMENTO
+-- 12. DADOS INICIAIS: CATEGORIAS DE PRODUTOS
+-- =====================================================
+
+INSERT INTO categoria (id_categoria, nome, descricao) VALUES
+(1, 'Vestuário', 'Roupas e peças de vestuário'),
+(2, 'Calçados', 'Calçados em geral'),
+(3, 'Acessórios', 'Bolsas, cintos e acessórios'),
+(4, 'Alimentos e Bebidas', 'Alimentos e bebidas'),
+(5, 'Geral', 'Produtos e utilidades gerais')
+ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
+
+-- =====================================================
+-- 13. DADOS INICIAIS: FORMAS DE PAGAMENTO
 -- =====================================================
 
 INSERT INTO forma_pagamento (descricao) VALUES
@@ -267,29 +281,25 @@ INSERT INTO forma_pagamento (descricao) VALUES
 ('Cartao de Debito'),
 ('Cartao de Credito'),
 ('Vale-Alimentacao'),
-('Vale-Refeicao');
+('Vale-Refeicao')
+ON DUPLICATE KEY UPDATE descricao = VALUES(descricao);
 
 -- =====================================================
--- 13. INDICES PARA CONSULTAS FREQUENTES
+-- 14. DADOS INICIAIS: USUARIO ADMINISTRADOR PADRAO
 -- =====================================================
 
-CREATE INDEX idx_venda_data
-    ON venda(data_hora);
+INSERT INTO usuario (id_usuario, nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
+VALUES (1, 'Administrador do Sistema', '000.000.000-00', 'admin', 'admin@pdv.com', '(11) 99999-9999', 'admin123', 'ATIVO', 1)
+ON DUPLICATE KEY UPDATE nome = VALUES(nome);
 
-CREATE INDEX idx_venda_status
-    ON venda(status);
+-- =====================================================
+-- 15. INDICES PARA CONSULTAS FREQUENTES
+-- =====================================================
 
-CREATE INDEX idx_item_venda_venda
-    ON item_venda(id_venda);
-
-CREATE INDEX idx_item_venda_produto
-    ON item_venda(id_produto);
-
-CREATE INDEX idx_movimentacao_data
-    ON movimentacao_estoque(data_hora);
-
-CREATE INDEX idx_movimentacao_produto
-    ON movimentacao_estoque(id_produto);
-
-CREATE INDEX idx_produto_nome
-    ON produto(nome);
+CREATE INDEX idx_venda_data ON venda(data_hora);
+CREATE INDEX idx_venda_status ON venda(status);
+CREATE INDEX idx_item_venda_venda ON item_venda(id_venda);
+CREATE INDEX idx_item_venda_produto ON item_venda(id_produto);
+CREATE INDEX idx_movimentacao_data ON movimentacao_estoque(data_hora);
+CREATE INDEX idx_movimentacao_produto ON movimentacao_estoque(id_produto);
+CREATE INDEX idx_produto_nome ON produto(nome);

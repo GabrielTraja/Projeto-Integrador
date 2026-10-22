@@ -3,41 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle</title>
+    <title>Painel de Controle - PDV Sistema</title>
+    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/telaControle.css">
 </head>
-<body>
+<body class="layout-dashboard">
 
     <!-- Cabeçalho Superior -->
     <header class="top-header">
         <div class="company-name">
             <span>Minha Empresa</span>
+            <span class="badge-pdv">PDV Pro</span>
         </div>
         
         <div class="user-profile">
-            <span class="user-name">Ciclano do Teste</span>
-            <a href="#" class="btn-logout">Sair</a>
+            <span class="user-name">Carregando...</span>
+            <button class="btn-logout">Sair</button>
         </div>
     </header>
     
     <!-- Menu Lateral -->
     <nav class="sidebar">
         <ul class="menu-list">
-            <li><img src="icones/inicio.png" alt="inicio"><a href="#">Início</a></li>
-            <li><img src="icones/pdv.png" alt="PDV"><a href="#">PDV</a></li>
-            <li><img src="icones/caixa.png" alt="Caixa"><a href="#">Caixa</a></li>
-            <li><img src="icones/estoque.png" alt="Estoque"><a href="#">Estoque</a></li>
-            <li><img src="icones/produtos.png" alt="Produtos"><a href="#">Produtos</a></li>
-            <li><img src="icones/usuarios.png" alt="Usuarios"><a href="#">Usuários</a></li>
-            <li><img src="icones/relatorio.png" alt="Relatorios"><a href="#">Relatórios</a></li>
-            <li><img src="icones/configuracao.png" alt="Configurações"><a href="#">Configurações</a></li>
+            <li><a href="telaControle.html" class="active"><img src="icones/inicio.png" alt="Início"><span>Início</span></a></li>
+            <li><a href="#"><img src="icones/pdv.png" alt="PDV"><span>PDV</span></a></li>
+            <li><a href="#"><img src="icones/caixa.png" alt="Caixa"><span>Caixa</span></a></li>
+            <li><a href="controleEstoque.html"><img src="icones/estoque.png" alt="Estoque"><span>Estoque</span></a></li>
+            <li><a href="cadastroProdutos.html"><img src="icones/produtos.png" alt="Produtos"><span>Produtos</span></a></li>
+            <li><a href="controleUsuarios.html"><img src="icones/usuarios.png" alt="Usuários"><span>Usuários</span></a></li>
+            <li><a href="#"><img src="icones/relatorio.png" alt="Relatórios"><span>Relatórios</span></a></li>
+            <li><a href="#"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
         </ul>
     </nav>
 
-        <main class="content">
+    <!-- Conteúdo Principal -->
+    <main class="content">
         <div class="welcome-section">
-            <h1>Bem-vindo, {Ciclano do Teste}</h1>
-            <p>Selecione uma opção para acessar as funções do sistema:</p>
+            <h1>Bem-vindo, Administrador</h1>
+            <p>Selecione uma opção abaixo para gerenciar os módulos do sistema PDV:</p>
         </div>
 
         <!-- Container dos Cartões de Função -->
@@ -48,8 +51,8 @@
                 <div class="card-icon">
                     <img src="icones/pdv.png" alt="PDV">
                 </div>
-                <h5>PDV</h5>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <h5>PDV (Frente de Caixa)</h5>
+                <p>Emissão de cupons fiscais, registro ágil de itens e leitura de código de barras.</p>
                 <button class="btn-card">Acessar PDV</button>
             </div>
 
@@ -59,7 +62,7 @@
                     <img src="icones/caixa.png" alt="Caixa">
                 </div>
                 <h5>Controle de Caixa</h5>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <p>Gerenciamento de turnos, abertura, sangria, suprimento e fechamento diário.</p>
                 <button class="btn-card">Acessar Caixa</button>
             </div>
 
@@ -69,7 +72,7 @@
                     <img src="icones/estoque.png" alt="Estoque">
                 </div>
                 <h5>Controle de Estoque</h5>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <p>Monitore níveis de estoque em tempo real, produtos em falta e alertas mínimos.</p>
                 <button class="btn-card">Acessar Estoque</button>
             </div>
 
@@ -78,8 +81,8 @@
                 <div class="card-icon">
                     <img src="icones/usuarios.png" alt="Usuários">
                 </div>
-                <h5>Cadastro de Usuários</h5>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <h5>Gerenciar Usuários</h5>
+                <p>Cadastre operadores, gerentes e controle os níveis de permissão de acesso.</p>
                 <button class="btn-card">Acessar Usuários</button>
             </div>
 
@@ -89,12 +92,15 @@
                     <img src="icones/produtos.png" alt="Produtos">
                 </div>
                 <h5>Cadastrar Produtos</h5>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero velit explicabo excepturi.</p>
+                <p>Adicione novos itens com código de barras, categorias, preços e margem.</p>
                 <button class="btn-card">Acessar Produtos</button>
             </div>
 
         </div>
     </main>
 
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -1,111 +1,150 @@
-/* Reset básico e box-sizing */
-* {
-    box-sizing: border-box;
-}
+/* ==========================================================================
+   CSS DA TELA DE LOGIN E CADASTRO RÁPIDO
+   ========================================================================== */
+@import url('global.css');
 
 body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f4f8;
-    font-family: Arial, sans-serif;
-    padding: 40px 20px; 
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f4f8;
+  padding: 40px 20px;
 }
 
 /* Container da caixa de Login / Cadastro */
 #caixaLogin {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
-    width: 100%;
-    max-width: 400px;
+  background-color: #ffffff;
+  padding: 35px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  width: 100%;
+  max-width: 440px;
+  border: 1px solid #e2e8f0;
 }
 
-/* Título 'Login' ou 'Cadastro' */
-#caixaLogin p {
-    margin: 0 0 15px 0;
-    font-size: 24px;
-    font-weight: bold;
-    color: #0056b3;
-    text-align: center;
+/* Título */
+#caixaLogin h2,
+#caixaLogin p.titulo-form {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+}
+
+.subtitulo-form {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
 }
 
 /* Formulário organizado com Flexbox */
 #caixaLogin form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 /* Rótulos (Labels) */
 #caixaLogin form label {
-    font-size: 13px;
-    font-weight: bold;
-    color: #333333;
-    margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: -6px;
 }
 
-/* Campos de entrada (Inputs) */
+/* Campos de entrada (Inputs e Selects) */
 .inputLogin {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #bce0fd;
-    border-radius: 6px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background-color: #f8fafc;
+  color: #0f172a;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Efeito ao focar no input */
 .inputLogin:focus {
-    border-color: #3399ff;
-    box-shadow: 0 0 5px rgba(51, 153, 255, 0.3);
+  border-color: #2563eb;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Remove setas do input do tipo number (Telefone) */
+/* Remove setas do input number */
 .inputLogin[type="number"]::-webkit-outer-spin-button,
 .inputLogin[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 .inputLogin[type="number"] {
-    -moz-appearance: textfield;
+  -moz-appearance: textfield;
 }
 
 /* Botão ('Login' ou 'Cadastrar') */
-#botaoLogin {
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    background-color: #3399ff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
+#botaoLogin,
+.btn-submit-login {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-#botaoLogin:hover {
-    background-color: #0077e6;
+#botaoLogin:hover,
+.btn-submit-login:hover {
+  background-color: #1e293b;
 }
 
-/* Link */
-#caixaLogin form a {
-    text-align: center;
-    margin-top: 6px;
-    font-size: 13px;
-    color: #0077e6;
-    text-decoration: none;
-    transition: color 0.2s;
+/* Links */
+.links-login {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 13px;
 }
 
-#caixaLogin form a:hover {
-    text-decoration: underline;
-    color: #0056b3;
+#caixaLogin a {
+  text-align: center;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+#caixaLogin a:hover {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+.mensagem-feedback {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  display: none;
+}
+
+.mensagem-erro {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.mensagem-sucesso {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }

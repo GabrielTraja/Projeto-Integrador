@@ -1,25 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - PDV Sistema</title>
+    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/login.css">
-    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="caixaLogin">
-        <p>Login</p>
-        <form action="" method="post">
-            <label for="usuario">Usuario:</label>
-            <input type="text" placeholder="Digite o seu usuário" class="inputLogin">
-            
-            <label for="senha">Senha:</label>
-            <input type="password" placeholder="Digite a sua senha" class="inputLogin">
+        <h2>PDV Sistema</h2>
+        <p class="subtitulo-form">Informe suas credenciais para acessar o painel</p>
 
-            <button type="submit" id="botaoLogin">Login</button>
-            <a href="cadastroUsuario.html">Não tem Login?</a>
+        <div id="mensagemFeedback" class="mensagem-feedback"></div>
+
+        <form id="formLogin">
+            <label for="loginUsuario">Usuário ou E-mail:</label>
+            <input type="text" id="loginUsuario" placeholder="Digite seu usuário ou e-mail" class="inputLogin" required autofocus>
+            
+            <label for="senhaUsuario">Senha:</label>
+            <input type="password" id="senhaUsuario" placeholder="Digite a sua senha" class="inputLogin" required>
+
+            <button type="submit" id="botaoLogin">Entrar no Sistema</button>
+            
+            <div class="links-login">
+                <a href="cadastroUsuario.html">Cadastrar novo usuário</a>
+                <span style="font-size: 0.8rem; color: #94a3b8;">Admin padrão: admin / admin123</span>
+            </div>
         </form>
     </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const formLogin = document.getElementById('formLogin');
+        const feedback = document.getElementById('mensagemFeedback');
+
+        formLogin.onsubmit = async (e) => {
+            e.preventDefault();
+            const usuario = document.getElementById('loginUsuario').value.trim();
+            const senha = document.getElementById('senhaUsuario').value;
+
+            feedback.style.display = 'none';
+
+            try {
+                const resposta = await api.post('/api/auth/login', { usuario, senha });
+                if (resposta.sucesso) {
+                    feedback.className = 'mensagem-feedback mensagem-sucesso';
+                    feedback.textContent = 'Login efetuado com sucesso! Redirecionando...';
+                    feedback.style.display = 'block';
+
+                    auth.salvarUsuario(resposta.usuario);
+                    setTimeout(() => {
+                        window.location.href = 'telaControle.html';
+                    }, 500);
+                }
+            } catch (erro) {
+                feedback.className = 'mensagem-feedback mensagem-erro';
+                feedback.textContent = erro.message || 'Erro ao realizar login.';
+                feedback.style.display = 'block';
+            }
+        };
+    </script>
 </body>
 </html>
