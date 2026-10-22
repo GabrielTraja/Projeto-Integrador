@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque</title>
+    <link rel="stylesheet" href="css/controleEstoque.css">
+</head>
+<body>
+    
+    <!-- Cabeçalho Superior -->
+    <header class="top-header">
+        <div class="company-name">
+            <span>Minha Empresa</span>
+        </div>
+        
+        <div class="user-profile">
+            <span class="user-name">Ciclano do Teste</span>
+            <a href="#" class="btn-logout">Sair</a>
+        </div>
+    </header>
+    
+    <!-- Menu Lateral -->
+    <nav class="sidebar">
+        <ul class="menu-list">
+            <li><a href="#"><img src="icones/inicio.png" alt="">Início</a></li>
+            <li><a href="#"><img src="icones/pdv.png" alt="">PDV</a></li>
+            <li><a href="#"><img src="icones/caixa.png" alt="">Caixa</a></li>
+            <li><a href="#" class="active"><img src="icones/estoque.png" alt="">Estoque</a></li>
+            <li><a href="#"><img src="icones/produtos.png" alt="">Produtos</a></li>
+            <li><a href="#"><img src="icones/usuarios.png" alt="">Usuários</a></li>
+            <li><a href="#"><img src="icones/relatorio.png" alt="">Relatórios</a></li>
+            <li><a href="#"><img src="icones/configuracao.png" alt="">Configurações</a></li>
+        </ul>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="content">
+        <div class="welcome-section">
+            <h1>Controle de Estoque</h1>
+            <p>Consulte os produtos cadastrados e monitore os níveis de estoque.</p>
+        </div>
+
+        <!-- Seção de Filtros e Busca -->
+        <div class="filter-container">
+            <form class="search-form" action="" method="GET">
+                <div class="form-group search-input-group">
+                    <input type="text" id="buscarProduto" name="busca" placeholder="Buscar produto por nome..." class="input-search">
+                </div>
+
+                <div class="form-group">
+                    <select id="categoria" name="categoria" class="select-category">
+                        <option value="">Todas as Categorias</option>
+                        <option value="vestuario">Vestuário</option>
+                        <option value="calcados">Calçados</option>
+                        <option value="acessorios">Acessórios</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-search">Buscar</button>
+            </form>
+
+            <a href="cadastroProduto.html" class="btn-add-product">+ Novo Produto</a>
+        </div>
+
+        <!-- Tabela / Lista de Produtos -->
+        <div class="table-container">
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Produto</th>
+                        <th>UN</th>
+                        <th>Categoria</th>
+                        <th>Preço Custo</th>
+                        <th>Preço Venda</th>
+                        <th>Estoque Mínimo</th>
+                        <th>Estoque Atual</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Exemplo de Item 1 - Normal -->
+                    <tr>
+                        <td class="img-cell">
+                            <img src="uploads/camiseta.jpg" alt="Camiseta Algodão" class="product-img">
+                        </td>
+                        <td class="product-name">Camiseta Algodão Premium</td>
+                        <td>UN</td>
+                        <td>Vestuário</td>
+                        <td>R$ 25,00</td>
+                        <td>R$ 59,90</td>
+                        <td>10</td>
+                        <td>45</td>
+                        <td><span class="status status-ok">Normal</span></td>
+                        <td class="actions-cell">
+                            <a href="#" class="btn-action edit" title="Editar">✏️</a>
+                            <a href="#" class="btn-action delete" title="Excluir">🗑️</a>
+                        </td>
+                    </tr>
+
+                    <!-- Exemplo de Item 2 - Estoque Baixo (Abaixo do mínimo) -->
+                    <tr class="low-stock-row">
+                        <td class="img-cell">
+                            <img src="uploads/tenis.jpg" alt="Tênis Esportivo" class="product-img">
+                        </td>
+                        <td class="product-name">Tênis Esportivo Pro</td>
+                        <td>PAR</td>
+                        <td>Calçados</td>
+                        <td>R$ 80,00</td>
+                        <td>R$ 189,90</td>
+                        <td>5</td>
+                        <td>2</td>
+                        <td><span class="status status-warning">Estoque Baixo</span></td>
+                        <td class="actions-cell">
+                            <a href="#" class="btn-action edit" title="Editar">✏️</a>
+                            <a href="#" class="btn-action delete" title="Excluir">🗑️</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+</body>
+</html>
