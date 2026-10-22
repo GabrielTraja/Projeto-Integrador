@@ -1,0 +1,295 @@
+
+-- =====================================================
+-- BANCO DE DADOS: PDV - PONTO DE VENDA
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS pdv
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE pdv;
+
+-- =====================================================
+-- 1. TIPOS DE USUARIOS / PERFIS DE ACESSO
+-- =====================================================
+
+CREATE TABLE tipo_usuario (
+    id_tipo_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    descricao VARCHAR(255)
+);
+
+-- =====================================================
+-- 2. USUARIOS
+-- =====================================================
+
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    login VARCHAR(50) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
+    id_tipo_usuario INT NOT NULL,
+    data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_usuario_tipo
+        FOREIGN KEY (id_tipo_usuario)
+        REFERENCES tipo_usuario(id_tipo_usuario)
+);
+
+-- =====================================================
+-- 3. CATEGORIAS DE PRODUTOS
+-- =====================================================
+
+CREATE TABLE categoria (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    descricao VARCHAR(255),
+    status ENUM('ATIVA', 'INATIVA') NOT NULL DEFAULT 'ATIVA'
+);
+
+-- =====================================================
+-- 4. PRODUTOS
+-- =====================================================
+
+CREATE TABLE produto (
+    id_produto INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_barras VARCHAR(50) UNIQUE,
+    nome VARCHAR(150) NOT NULL,
+    descricao TEXT,
+    marca VARCHAR(100),
+    preco_custo DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    preco_venda DECIMAL(10,2) NOT NULL,
+    estoque_atual DECIMAL(12,3) NOT NULL DEFAULT 0,
+    estoque_minimo DECIMAL(12,3) NOT NULL DEFAULT 0,
+    unidade_medida VARCHAR(10) NOT NULL DEFAULT 'UN',
+    status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
+    id_categoria INT NOT NULL,
+    data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_produto_categoria
+        FOREIGN KEY (id_categoria)
+        REFERENCES categoria(id_categoria),
+
+    CONSTRAINT chk_produto_preco_custo
+        CHECK (preco_custo >= 0),
+
+    CONSTRAINT chk_produto_preco_venda
+        CHECK (preco_venda >= 0),
+
+    CONSTRAINT chk_produto_estoque
+        CHECK (estoque_atual >= 0 AND estoque_minimo >= 0)
+);
+
+-- =====================================================
+-- 5. CAIXAS
+-- =====================================================
+
+CREATE TABLE caixa (
+    id_caixa INT AUTO_INCREMENT PRIMARY KEY,
+    data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_fechamento DATETIME,
+    valor_inicial DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    valor_final DECIMAL(12,2),
+    status ENUM('ABERTO', 'FECHADO') NOT NULL DEFAULT 'ABERTO',
+    observacao VARCHAR(255),
+    id_usuario_abertura INT NOT NULL,
+    id_usuario_fechamento INT,
+
+    CONSTRAINT fk_caixa_usuario_abertura
+        FOREIGN KEY (id_usuario_abertura)
+        REFERENCES usuario(id_usuario),
+
+    CONSTRAINT fk_caixa_usuario_fechamento
+        FOREIGN KEY (id_usuario_fechamento)
+        REFERENCES usuario(id_usuario),
+
+    CONSTRAINT chk_caixa_valor_inicial
+        CHECK (valor_inicial >= 0),
+
+    CONSTRAINT chk_caixa_valor_final
+        CHECK (valor_final IS NULL OR valor_final >= 0)
+);
+
+-- =====================================================
+-- 6. VENDAS
+-- =====================================================
+
+CREATE TABLE venda (
+    id_venda INT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    valor_subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    desconto DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    valor_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    status ENUM(
+        'ABERTA',
+        'FINALIZADA',
+        'CANCELADA'
+    ) NOT NULL DEFAULT 'ABERTA',
+    observacao VARCHAR(255),
+    id_usuario INT NOT NULL,
+    id_caixa INT NOT NULL,
+
+    CONSTRAINT fk_venda_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    CONSTRAINT fk_venda_caixa
+        FOREIGN KEY (id_caixa)
+        REFERENCES caixa(id_caixa),
+
+    CONSTRAINT chk_venda_valores
+        CHECK (
+            valor_subtotal >= 0
+            AND desconto >= 0
+            AND valor_total >= 0
+        )
+);
+
+-- =====================================================
+-- 7. ITENS DA VENDA
+-- =====================================================
+
+CREATE TABLE item_venda (
+    id_item_venda INT AUTO_INCREMENT PRIMARY KEY,
+    id_venda INT NOT NULL,
+    id_produto INT NOT NULL,
+    quantidade DECIMAL(12,3) NOT NULL,
+    preco_unitario DECIMAL(10,2) NOT NULL,
+    desconto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    subtotal DECIMAL(12,2) NOT NULL,
+
+    CONSTRAINT fk_item_venda_venda
+        FOREIGN KEY (id_venda)
+        REFERENCES venda(id_venda),
+
+    CONSTRAINT fk_item_venda_produto
+        FOREIGN KEY (id_produto)
+        REFERENCES produto(id_produto),
+
+    CONSTRAINT chk_item_quantidade
+        CHECK (quantidade > 0),
+
+    CONSTRAINT chk_item_precos
+        CHECK (
+            preco_unitario >= 0
+            AND desconto >= 0
+            AND subtotal >= 0
+        )
+);
+
+-- =====================================================
+-- 8. FORMAS DE PAGAMENTO
+-- =====================================================
+
+CREATE TABLE forma_pagamento (
+    id_forma_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(50) NOT NULL UNIQUE,
+    status ENUM('ATIVA', 'INATIVA') NOT NULL DEFAULT 'ATIVA'
+);
+
+-- =====================================================
+-- 9. PAGAMENTOS
+-- Uma venda pode ter varios pagamentos.
+-- Exemplo: parte em dinheiro e parte no cartao.
+-- =====================================================
+
+CREATE TABLE pagamento (
+    id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+    id_venda INT NOT NULL,
+    id_forma_pagamento INT NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('APROVADO', 'PENDENTE', 'ESTORNADO')
+        NOT NULL DEFAULT 'APROVADO',
+    observacao VARCHAR(255),
+
+    CONSTRAINT fk_pagamento_venda
+        FOREIGN KEY (id_venda)
+        REFERENCES venda(id_venda),
+
+    CONSTRAINT fk_pagamento_forma
+        FOREIGN KEY (id_forma_pagamento)
+        REFERENCES forma_pagamento(id_forma_pagamento),
+
+    CONSTRAINT chk_pagamento_valor
+        CHECK (valor > 0)
+);
+
+-- =====================================================
+-- 10. MOVIMENTACOES DE ESTOQUE
+-- =====================================================
+
+CREATE TABLE movimentacao_estoque (
+    id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
+    id_produto INT NOT NULL,
+    id_usuario INT NOT NULL,
+    id_venda INT,
+    tipo ENUM('ENTRADA', 'SAIDA', 'AJUSTE') NOT NULL,
+    quantidade DECIMAL(12,3) NOT NULL,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    motivo VARCHAR(255),
+    observacao VARCHAR(255),
+
+    CONSTRAINT fk_movimentacao_produto
+        FOREIGN KEY (id_produto)
+        REFERENCES produto(id_produto),
+
+    CONSTRAINT fk_movimentacao_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+
+    CONSTRAINT fk_movimentacao_venda
+        FOREIGN KEY (id_venda)
+        REFERENCES venda(id_venda),
+
+    CONSTRAINT chk_movimentacao_quantidade
+        CHECK (quantidade > 0)
+);
+
+-- =====================================================
+-- 11. DADOS INICIAIS: TIPOS DE USUARIO
+-- =====================================================
+
+INSERT INTO tipo_usuario (nome, descricao) VALUES
+('Administrador', 'Acesso administrativo ao sistema'),
+('Gerente', 'Gerenciamento da operacao e relatorios'),
+('Operador de Caixa', 'Registro de vendas e operacao do caixa'),
+('Estoquista', 'Cadastro, entrada e ajuste de estoque');
+
+-- =====================================================
+-- 12. DADOS INICIAIS: FORMAS DE PAGAMENTO
+-- =====================================================
+
+INSERT INTO forma_pagamento (descricao) VALUES
+('Dinheiro'),
+('Pix'),
+('Cartao de Debito'),
+('Cartao de Credito'),
+('Vale-Alimentacao'),
+('Vale-Refeicao');
+
+-- =====================================================
+-- 13. INDICES PARA CONSULTAS FREQUENTES
+-- =====================================================
+
+CREATE INDEX idx_venda_data
+    ON venda(data_hora);
+
+CREATE INDEX idx_venda_status
+    ON venda(status);
+
+CREATE INDEX idx_item_venda_venda
+    ON item_venda(id_venda);
+
+CREATE INDEX idx_item_venda_produto
+    ON item_venda(id_produto);
+
+CREATE INDEX idx_movimentacao_data
+    ON movimentacao_estoque(data_hora);
+
+CREATE INDEX idx_movimentacao_produto
+    ON movimentacao_estoque(id_produto);
+
+CREATE INDEX idx_produto_nome
+    ON produto(nome);
