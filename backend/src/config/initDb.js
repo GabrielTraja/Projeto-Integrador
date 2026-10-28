@@ -171,6 +171,105 @@ async function initDatabase() {
             console.log('✔ Produtos iniciais cadastrados com sucesso!');
         }
 
+        // 9. Tabelas de Vendas e Caixa
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS caixa (
+                id_caixa INT AUTO_INCREMENT PRIMARY KEY,
+                data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                data_fechamento DATETIME,
+                valor_inicial DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                valor_final DECIMAL(12,2),
+                status ENUM('ABERTO', 'FECHADO') NOT NULL DEFAULT 'ABERTO',
+                observacao VARCHAR(255),
+                id_usuario_abertura INT NOT NULL,
+                id_usuario_fechamento INT,
+                CONSTRAINT fk_caixa_usuario_abertura FOREIGN KEY (id_usuario_abertura) REFERENCES usuario(id_usuario)
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS forma_pagamento (
+                id_forma_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+                descricao VARCHAR(50) NOT NULL UNIQUE,
+                status ENUM('ATIVA', 'INATIVA') NOT NULL DEFAULT 'ATIVA'
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS venda (
+                id_venda INT AUTO_INCREMENT PRIMARY KEY,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                valor_subtotal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                desconto DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                valor_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                status ENUM('ABERTA', 'FINALIZADA', 'CANCELADA') NOT NULL DEFAULT 'ABERTA',
+                observacao VARCHAR(255),
+                id_usuario INT NOT NULL,
+                id_caixa INT NOT NULL,
+                CONSTRAINT fk_venda_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                CONSTRAINT fk_venda_caixa FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa)
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS item_venda (
+                id_item_venda INT AUTO_INCREMENT PRIMARY KEY,
+                id_venda INT NOT NULL,
+                id_produto INT NOT NULL,
+                quantidade DECIMAL(12,3) NOT NULL,
+                preco_unitario DECIMAL(10,2) NOT NULL,
+                desconto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                subtotal DECIMAL(12,2) NOT NULL,
+                CONSTRAINT fk_item_venda_venda FOREIGN KEY (id_venda) REFERENCES venda(id_venda),
+                CONSTRAINT fk_item_venda_produto FOREIGN KEY (id_produto) REFERENCES produto(id_produto)
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS pagamento (
+                id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+                id_venda INT NOT NULL,
+                id_forma_pagamento INT NOT NULL,
+                valor DECIMAL(12,2) NOT NULL,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                status ENUM('APROVADO', 'PENDENTE', 'ESTORNADO') NOT NULL DEFAULT 'APROVADO',
+                observacao VARCHAR(255),
+                CONSTRAINT fk_pagamento_venda FOREIGN KEY (id_venda) REFERENCES venda(id_venda),
+                CONSTRAINT fk_pagamento_forma FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento)
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS movimentacao_estoque (
+                id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
+                id_produto INT NOT NULL,
+                id_usuario INT NOT NULL,
+                id_venda INT,
+                tipo ENUM('ENTRADA', 'SAIDA', 'AJUSTE') NOT NULL,
+                quantidade DECIMAL(12,3) NOT NULL,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                motivo VARCHAR(255),
+                observacao VARCHAR(255),
+                CONSTRAINT fk_movimentacao_produto FOREIGN KEY (id_produto) REFERENCES produto(id_produto),
+                CONSTRAINT fk_movimentacao_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+            );
+        `);
+
+        // Seeds: Formas de Pagamento
+        const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito', 'Vale-Alimentação'];
+        for (const forma of formasPagamento) {
+            await connection.query(`INSERT IGNORE INTO forma_pagamento (descricao) VALUES (?)`, [forma]);
+        }
+
+        // Seed: Caixa Aberto Padrão
+        const [caixas] = await connection.query(`SELECT COUNT(*) as total FROM caixa`);
+        if (caixas[0].total === 0) {
+            await connection.query(`
+                INSERT INTO caixa (valor_inicial, status, observacao, id_usuario_abertura)
+                VALUES (150.00, 'ABERTO', 'Caixa Inicial PDV', 1)
+            `);
+        }
+
         console.log('✔ Banco de dados e tabelas inicializados com sucesso.');
     } catch (error) {
         console.error('❌ Erro na inicialização do banco de dados:', error.message);
