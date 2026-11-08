@@ -23,7 +23,7 @@ async function carregarDados() {
         console.error('Erro ao carregar usuários:', erro);
         const tbody = document.querySelector('.stock-table tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar usuários: ${erro.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar usuários: ${escapeHtml(erro.message)}</td></tr>`;
         }
     }
 }
@@ -32,6 +32,7 @@ async function carregarDados() {
 function mostrar() {
     const tbody = document.querySelector('.stock-table tbody');
     if (!tbody) return;
+    const podeGerenciar = Number(auth.obterUsuario()?.id_tipo_usuario) === 1;
 
     if (!listaItens || listaItens.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color: #64748b;">Nenhum usuário encontrado.</td></tr>`;
@@ -53,22 +54,24 @@ function mostrar() {
         html += `
             <tr class="${!ehAtivo ? 'low-stock-row' : ''}">
                 <td class="img-cell">
-                    <div class="user-img">${iniciais}</div>
+                    <div class="user-img">${escapeHtml(iniciais)}</div>
                 </td>
                 <td class="product-name">
-                    ${item.nome}
-                    <br><span style="font-size: 0.8rem; color: #64748b; font-weight: normal;">Login: ${item.login}</span>
+                    ${escapeHtml(item.nome)}
+                    <br><span style="font-size: 0.8rem; color: #64748b; font-weight: normal;">Login: ${escapeHtml(item.login)}</span>
                 </td>
-                <td>${item.email || '<span style="color:#94a3b8">Não informado</span>'}</td>
-                <td><span class="user-role ${roleClass}">${item.tipo_nome || 'Operador'}</span></td>
+                <td>${item.email ? escapeHtml(item.email) : '<span style="color:#94a3b8">Não informado</span>'}</td>
+                <td><span class="user-role ${roleClass}">${escapeHtml(item.tipo_nome || 'Operador')}</span></td>
                 <td>
                     <span class="status ${ehAtivo ? 'status-ok' : 'status-warning'}">
-                        ${item.status}
+                        ${escapeHtml(item.status)}
                     </span>
                 </td>
                 <td class="actions-cell">
-                    <button type="button" class="btn-action edit" title="Editar Usuário" onclick="editar(${item.id_usuario})">✏️</button>
-                    <button type="button" class="btn-action delete" title="Excluir Usuário" onclick="deletar(${item.id_usuario})">🗑️</button>
+                    ${podeGerenciar ? `
+                        <button type="button" class="btn-action edit" title="Editar Usuário" onclick="editar(${item.id_usuario})">✏️</button>
+                        <button type="button" class="btn-action delete" title="Excluir Usuário" onclick="deletar(${item.id_usuario})">🗑️</button>
+                    ` : ''}
                 </td>
             </tr>
         `;
@@ -302,7 +305,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Se estiver na tela de cadastro de usuários
     const formCadastro = document.querySelector('#caixaLogin form');
     if (formCadastro && window.location.pathname.includes('cadastroUsuario')) {
+        const usuarioLogado = auth.verificarAutenticacao();
+        if (!usuarioLogado || Number(usuarioLogado.id_tipo_usuario) !== 1) {
+            window.location.href = usuarioLogado ? 'controleUsuarios.html' : 'login.html';
+            return;
+        }
         formCadastro.onsubmit = salvarDados;
     }
 });
-

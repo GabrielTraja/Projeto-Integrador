@@ -1,4 +1,5 @@
 const UsuarioModel = require('../models/usuarioModel');
+const { hashPassword } = require('../utils/password');
 
 const usuarioController = {
     async listar(req, res) {
@@ -30,7 +31,8 @@ const usuarioController = {
         try {
             const { nome, cpf, login, email, telefone, senha, status, id_tipo_usuario } = req.body;
 
-            if (!nome || !login || !senha) {
+            if (typeof nome !== 'string' || typeof login !== 'string' ||
+                typeof senha !== 'string' || !nome.trim() || !login.trim() || !senha) {
                 return res.status(400).json({ erro: 'Nome, login e senha são obrigatórios.' });
             }
 
@@ -46,9 +48,11 @@ const usuarioController = {
                 login,
                 email,
                 telefone,
-                senha,
-                status: status || 'ATIVO',
-                id_tipo_usuario: Number(id_tipo_usuario) || 3 // Padrão: Operador de Caixa se não informado
+                senha: await hashPassword(senha),
+                status: req.usuarioAutenticado?.id_tipo_usuario === 1 ? (status || 'ATIVO') : 'ATIVO',
+                id_tipo_usuario: req.usuarioAutenticado?.id_tipo_usuario === 1
+                    ? (Number(id_tipo_usuario) || 3)
+                    : 3
             });
 
             res.status(201).json({
@@ -57,6 +61,9 @@ const usuarioController = {
             });
         } catch (error) {
             console.error('Erro ao cadastrar usuário:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ erro: 'Login ou e-mail já cadastrado.' });
+            }
             res.status(500).json({ erro: 'Erro ao cadastrar usuário.' });
         }
     },
@@ -68,6 +75,9 @@ const usuarioController = {
 
             if (!nome || !login) {
                 return res.status(400).json({ erro: 'Nome e login são obrigatórios.' });
+            }
+            if (senha !== undefined && typeof senha !== 'string') {
+                return res.status(400).json({ erro: 'A senha deve ser um texto válido.' });
             }
 
             const usuarioAtual = await UsuarioModel.buscarPorId(id);
@@ -89,8 +99,8 @@ const usuarioController = {
                 login,
                 email,
                 telefone,
-                senha,
-                status: status || 'ATIVO',
+                senha: senha && senha.trim() ? await hashPassword(senha) : null,
+                status: status !== undefined ? status : usuarioAtual.status,
                 id_tipo_usuario: Number(id_tipo_usuario) || usuarioAtual.id_tipo_usuario
             });
 
@@ -101,6 +111,9 @@ const usuarioController = {
             }
         } catch (error) {
             console.error('Erro ao atualizar usuário:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ erro: 'Login ou e-mail já cadastrado.' });
+            }
             res.status(500).json({ erro: 'Erro ao atualizar usuário.' });
         }
     },
@@ -136,4 +149,3 @@ const usuarioController = {
 };
 
 module.exports = usuarioController;
-

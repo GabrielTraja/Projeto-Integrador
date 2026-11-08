@@ -11,8 +11,18 @@ const VendaModel = {
             itens = []
         } = dadosVenda;
 
-        if (!itens || itens.length === 0) {
-            throw new Error('A venda deve conter pelo menos um item.');
+        const falhaValidacao = (mensagem) => Object.assign(new Error(mensagem), { status: 400 });
+        if (!Array.isArray(itens) || itens.length === 0) {
+            throw falhaValidacao('A venda deve conter pelo menos um item.');
+        }
+
+        const descontoInformado = Number(desconto);
+        const recebidoInformado = Number(valor_recebido);
+        if (!Number.isFinite(descontoInformado) || descontoInformado < 0) {
+            throw falhaValidacao('O desconto deve ser um valor válido e não negativo.');
+        }
+        if (!Number.isFinite(recebidoInformado) || recebidoInformado < 0) {
+            throw falhaValidacao('O valor recebido deve ser válido e não negativo.');
         }
 
         const connection = await db.getConnection();
@@ -40,26 +50,42 @@ const VendaModel = {
             // 2. Calcula subtotal e valida itens
             let valor_subtotal = 0;
             const itensValidados = [];
+            const quantidadesReservadas = new Map();
 
             for (const item of itens) {
+                const idProduto = Number(item.id_produto);
+                const quantidade = Number(item.quantidade);
+                if (!Number.isInteger(idProduto) || idProduto <= 0 ||
+                    !Number.isFinite(quantidade) || quantidade <= 0 ||
+                    Math.abs(quantidade * 1000 - Math.round(quantidade * 1000)) > 1e-7) {
+                    throw falhaValidacao('Cada item deve ter um produto válido e uma quantidade maior que zero.');
+                }
+
                 const [prodRows] = await connection.query(`
-                    SELECT id_produto, nome, preco_venda, estoque_atual, unidade_medida
+                    SELECT id_produto, nome, preco_venda, estoque_atual, unidade_medida, status
                     FROM produto
                     WHERE id_produto = ?
-                `, [item.id_produto]);
+                    FOR UPDATE
+                `, [idProduto]);
 
                 if (prodRows.length === 0) {
-                    throw new Error(`Produto ID ${item.id_produto} não encontrado.`);
+                    throw falhaValidacao(`Produto ID ${idProduto} não encontrado.`);
                 }
 
                 const produto = prodRows[0];
-                const quantidade = parseFloat(item.quantidade) || 1;
-                const preco_unitario = parseFloat(item.preco_unitario !== undefined ? item.preco_unitario : produto.preco_venda);
-                const subtotal_item = quantidade * preco_unitario;
+                if (produto.status !== 'ATIVO') {
+                    throw falhaValidacao(`O produto "${produto.nome}" está inativo.`);
+                }
+                const quantidadeReservada = (quantidadesReservadas.get(idProduto) || 0) + quantidade;
+                quantidadesReservadas.set(idProduto, quantidadeReservada);
+                if (Number(produto.estoque_atual) < quantidadeReservada) {
+                    throw falhaValidacao(`Estoque insuficiente para o produto "${produto.nome}". Disponível: ${produto.estoque_atual}`);
+                }
 
-                // Verifica estoque disponível
-                if (parseFloat(produto.estoque_atual) < quantidade) {
-                    throw new Error(`Estoque insuficiente para o produto "${produto.nome}". Disponível: ${produto.estoque_atual}`);
+                const preco_unitario = Number(produto.preco_venda);
+                const subtotal_item = quantidade * preco_unitario;
+                if (!Number.isFinite(preco_unitario) || preco_unitario < 0 || !Number.isFinite(subtotal_item)) {
+                    throw falhaValidacao(`Preço inválido para o produto "${produto.nome}".`);
                 }
 
                 valor_subtotal += subtotal_item;
@@ -72,8 +98,14 @@ const VendaModel = {
                 });
             }
 
-            const valor_desconto = parseFloat(desconto) || 0;
-            const valor_total = Math.max(0, valor_subtotal - valor_desconto);
+            const valor_desconto = descontoInformado;
+            if (valor_subtotal <= 0 || valor_desconto >= valor_subtotal) {
+                throw falhaValidacao('O total da venda deve ser maior que zero e o desconto menor que o subtotal.');
+            }
+            const valor_total = valor_subtotal - valor_desconto;
+            if (recebidoInformado < valor_total) {
+                throw falhaValidacao('O valor recebido não pode ser menor que o total da venda.');
+            }
 
             // 3. Insere a Venda
             const [resultVenda] = await connection.query(`
@@ -91,25 +123,32 @@ const VendaModel = {
                 `, [id_venda, item.id_produto, item.quantidade, item.preco_unitario, item.subtotal]);
 
                 // Baixa de estoque
-                await connection.query(`
+                const [resultUpdate] = await connection.query(`
                     UPDATE produto 
                     SET estoque_atual = estoque_atual - ?
-                    WHERE id_produto = ?
-                `, [item.quantidade, item.id_produto]);
+                    WHERE id_produto = ? AND estoque_atual >= ?
+                `, [item.quantidade, item.id_produto, item.quantidade]);
+                if (resultUpdate.affectedRows !== 1) {
+                    throw falhaValidacao(`Estoque insuficiente para o produto "${item.nome}".`);
+                }
 
                 // Movimentação de estoque (SAÍDA)
                 await connection.query(`
                     INSERT INTO movimentacao_estoque (id_produto, id_usuario, id_venda, tipo, quantidade, motivo)
-                    VALUES (?, ?, ?, 'SAIDA', ?, 'Venda PDV Cupom #' ?)
-                `, [item.id_produto, id_usuario, id_venda, item.quantidade, id_venda]);
+                    VALUES (?, ?, ?, 'SAIDA', ?, ?)
+                `, [item.id_produto, id_usuario, id_venda, item.quantidade, `Venda PDV Cupom #${id_venda}`]);
             }
 
             // 5. Registra o pagamento (se forma_pagamento informada)
             const [formas] = await connection.query(`
-                SELECT id_forma_pagamento FROM forma_pagamento WHERE LOWER(descricao) = LOWER(?) LIMIT 1
+                SELECT id_forma_pagamento FROM forma_pagamento
+                WHERE LOWER(descricao) = LOWER(?) AND status = 'ATIVA' LIMIT 1
             `, [forma_pagamento]);
 
-            const id_forma = formas.length > 0 ? formas[0].id_forma_pagamento : 1; // Padrão 1 (Dinheiro)
+            if (formas.length === 0) {
+                throw falhaValidacao('Forma de pagamento inválida ou inativa.');
+            }
+            const id_forma = formas[0].id_forma_pagamento;
 
             await connection.query(`
                 INSERT INTO pagamento (id_venda, id_forma_pagamento, valor, status)
@@ -123,8 +162,8 @@ const VendaModel = {
                 valor_subtotal,
                 desconto: valor_desconto,
                 valor_total,
-                valor_recebido: parseFloat(valor_recebido) || valor_total,
-                troco: Math.max(0, (parseFloat(valor_recebido) || valor_total) - valor_total),
+                valor_recebido: recebidoInformado,
+                troco: Math.max(0, recebidoInformado - valor_total),
                 quantidade_itens: itensValidados.length,
                 data_hora: new Date().toISOString()
             };
@@ -137,6 +176,10 @@ const VendaModel = {
     },
 
     async listarVendasRecentes(limite = 10) {
+        const quantidade = Number(limite);
+        if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 100) {
+            throw Object.assign(new Error('O limite deve ser um inteiro entre 1 e 100.'), { status: 400 });
+        }
         const sql = `
             SELECT 
                 v.id_venda,
@@ -151,10 +194,9 @@ const VendaModel = {
             ORDER BY v.id_venda DESC
             LIMIT ?
         `;
-        const [rows] = await db.query(sql, [parseInt(limite, 10)]);
+        const [rows] = await db.query(sql, [quantidade]);
         return rows;
     }
 };
 
 module.exports = VendaModel;
-

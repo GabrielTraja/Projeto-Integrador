@@ -1,6 +1,61 @@
 const ProdutoModel = require('../models/produtoModel');
 const CategoriaModel = require('../models/categoriaModel');
 
+function validarProduto(dados, atual = {}) {
+    const nome = dados.nome !== undefined ? dados.nome : atual.nome;
+    if (typeof nome !== 'string' || !nome.trim()) {
+        return { erro: 'Nome do produto é obrigatório.' };
+    }
+
+    const valores = { nome: nome.trim() };
+    const camposNumericos = [
+        ['preco_custo', 0],
+        ['preco_venda', undefined],
+        ['estoque_atual', 0],
+        ['estoque_minimo', 0]
+    ];
+
+    for (const [campo, padrao] of camposNumericos) {
+        const informado = dados[campo] !== undefined ? dados[campo] : atual[campo];
+        const valor = informado === undefined ? padrao : informado;
+        if (valor === undefined || valor === null || (typeof valor === 'string' && !valor.trim())) {
+            return { erro: 'Preço de venda é obrigatório.' };
+        }
+        if (!['number', 'string'].includes(typeof valor)) {
+            return { erro: `${campo} deve ser um valor numérico não negativo.` };
+        }
+        const numero = Number(valor);
+        const escala = campo.startsWith('estoque_') ? 1000 : 100;
+        const maximo = campo.startsWith('estoque_') ? 999999999.999 : 99999999.99;
+        if (!Number.isFinite(numero) || numero < 0 || numero > maximo ||
+            Math.abs(numero * escala - Math.round(numero * escala)) > 1e-7) {
+            return { erro: `${campo} deve ser um valor numérico não negativo.` };
+        }
+        valores[campo] = numero;
+    }
+
+    const status = dados.status !== undefined ? dados.status : (atual.status || 'ATIVO');
+    if (!['ATIVO', 'INATIVO'].includes(status)) {
+        return { erro: 'Status do produto inválido.' };
+    }
+    valores.status = status;
+
+    const categoria = dados.id_categoria !== undefined ? dados.id_categoria : atual.id_categoria;
+    if (categoria !== undefined && categoria !== null && categoria !== '') {
+        const idCategoria = Number(categoria);
+        if (!Number.isInteger(idCategoria) || idCategoria <= 0) {
+            return { erro: 'Categoria inválida.' };
+        }
+        valores.id_categoria = idCategoria;
+    }
+    if (dados.categoria_nome !== undefined && dados.categoria_nome !== null &&
+        typeof dados.categoria_nome !== 'string') {
+        return { erro: 'Nome da categoria inválido.' };
+    }
+
+    return { valores };
+}
+
 const produtoController = {
     async listar(req, res) {
         try {
@@ -29,24 +84,11 @@ const produtoController = {
 
     async criar(req, res) {
         try {
-            let {
-                codigo_barras,
-                nome,
-                descricao,
-                marca,
-                preco_custo,
-                preco_venda,
-                estoque_atual,
-                estoque_minimo,
-                unidade_medida,
-                status,
-                foto,
-                id_categoria,
-                categoria_nome
-            } = req.body;
+            let { codigo_barras, descricao, marca, unidade_medida, foto, id_categoria, categoria_nome } = req.body;
 
-            if (!nome || preco_venda === undefined || preco_venda === null) {
-                return res.status(400).json({ erro: 'Nome do produto e preço de venda são obrigatórios.' });
+            const validacao = validarProduto(req.body);
+            if (validacao.erro) {
+                return res.status(400).json({ erro: validacao.erro });
             }
 
             // Se recebeu categoria_nome e não id_categoria, resolve a categoria
@@ -56,17 +98,12 @@ const produtoController = {
 
             const novoProduto = await ProdutoModel.criar({
                 codigo_barras,
-                nome,
+                ...validacao.valores,
                 descricao,
                 marca,
-                preco_custo: preco_custo || 0,
-                preco_venda,
-                estoque_atual: estoque_atual || 0,
-                estoque_minimo: estoque_minimo || 0,
                 unidade_medida: unidade_medida || 'UN',
-                status: status || 'ATIVO',
                 foto,
-                id_categoria: id_categoria || 1
+                id_categoria: id_categoria || validacao.valores.id_categoria || 1
             });
 
             res.status(201).json({
@@ -85,29 +122,16 @@ const produtoController = {
     async atualizar(req, res) {
         try {
             const { id } = req.params;
-            let {
-                codigo_barras,
-                nome,
-                descricao,
-                marca,
-                preco_custo,
-                preco_venda,
-                estoque_atual,
-                estoque_minimo,
-                unidade_medida,
-                status,
-                foto,
-                id_categoria,
-                categoria_nome
-            } = req.body;
-
-            if (!nome || preco_venda === undefined || preco_venda === null) {
-                return res.status(400).json({ erro: 'Nome do produto e preço de venda são obrigatórios.' });
-            }
+            let { codigo_barras, descricao, marca, unidade_medida, foto, id_categoria, categoria_nome } = req.body;
 
             const existente = await ProdutoModel.buscarPorId(id);
             if (!existente) {
                 return res.status(404).json({ erro: 'Produto não encontrado.' });
+            }
+
+            const validacao = validarProduto(req.body, existente);
+            if (validacao.erro) {
+                return res.status(400).json({ erro: validacao.erro });
             }
 
             if (!id_categoria && categoria_nome) {
@@ -116,17 +140,12 @@ const produtoController = {
 
             const sucesso = await ProdutoModel.atualizar(id, {
                 codigo_barras,
-                nome,
+                ...validacao.valores,
                 descricao,
                 marca,
-                preco_custo: preco_custo !== undefined ? preco_custo : existente.preco_custo,
-                preco_venda: preco_venda !== undefined ? preco_venda : existente.preco_venda,
-                estoque_atual: estoque_atual !== undefined ? estoque_atual : existente.estoque_atual,
-                estoque_minimo: estoque_minimo !== undefined ? estoque_minimo : existente.estoque_minimo,
                 unidade_medida: unidade_medida || existente.unidade_medida,
-                status: status || existente.status,
                 foto: foto !== undefined ? foto : existente.foto,
-                id_categoria: id_categoria || existente.id_categoria
+                id_categoria: id_categoria || validacao.valores.id_categoria || existente.id_categoria
             });
 
             if (sucesso) {
@@ -164,4 +183,3 @@ const produtoController = {
 };
 
 module.exports = produtoController;
-

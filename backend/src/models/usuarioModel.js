@@ -107,7 +107,12 @@ const UsuarioModel = {
             id_tipo_usuario
         ]);
 
-        return { id_usuario: result.insertId, ...dados };
+        const { senha: _, ...dadosPublicos } = dados;
+        return { id_usuario: result.insertId, ...dadosPublicos };
+    },
+
+    async atualizarSenha(id, senha) {
+        await db.query(`UPDATE usuario SET senha = ? WHERE id_usuario = ?`, [senha, id]);
     },
 
     async atualizar(id, dados) {
@@ -154,4 +159,3 @@ const UsuarioModel = {
 };
 
 module.exports = UsuarioModel;
-

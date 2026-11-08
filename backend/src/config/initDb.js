@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 const path = require('path');
 const dotenv = require('dotenv');
+const { hashPassword } = require('../utils/password');
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -49,6 +50,7 @@ async function initDatabase() {
                 status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
                 id_tipo_usuario INT NOT NULL,
                 data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_usuario_email (email),
                 CONSTRAINT fk_usuario_tipo
                     FOREIGN KEY (id_tipo_usuario)
                     REFERENCES tipo_usuario(id_tipo_usuario)
@@ -66,6 +68,29 @@ async function initDatabase() {
         }
         if (!colNames.includes('telefone')) {
             await connection.query(`ALTER TABLE usuario ADD COLUMN telefone VARCHAR(20) NULL AFTER email`);
+        }
+        await connection.query(`UPDATE usuario SET email = NULL WHERE email IS NOT NULL AND TRIM(email) = ''`);
+        const [emailsDuplicados] = await connection.query(`
+            SELECT email, COUNT(*) AS total
+            FROM usuario
+            WHERE email IS NOT NULL
+            GROUP BY email
+            HAVING COUNT(*) > 1
+            LIMIT 1
+        `);
+        if (emailsDuplicados.length > 0) {
+            throw new Error('Há e-mails associados a mais de um usuário. Corrija as duplicidades antes de iniciar.');
+        }
+        const [emailIndex] = await connection.query(`
+            SELECT COUNT(*) AS total
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+              AND table_name = 'usuario'
+              AND column_name = 'email'
+              AND non_unique = 0
+        `);
+        if (emailIndex[0].total === 0) {
+            await connection.query(`ALTER TABLE usuario ADD UNIQUE INDEX uq_usuario_email (email)`);
         }
 
         // 3. Tabela categoria
@@ -97,7 +122,10 @@ async function initDatabase() {
                 data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT fk_produto_categoria
                     FOREIGN KEY (id_categoria)
-                    REFERENCES categoria(id_categoria)
+                    REFERENCES categoria(id_categoria),
+                CONSTRAINT chk_produto_preco_custo CHECK (preco_custo >= 0),
+                CONSTRAINT chk_produto_preco_venda CHECK (preco_venda >= 0),
+                CONSTRAINT chk_produto_estoque CHECK (estoque_atual >= 0 AND estoque_minimo >= 0)
             );
         `);
 
@@ -105,6 +133,24 @@ async function initDatabase() {
         const prodColNames = prodCols.map(c => c.Field);
         if (!prodColNames.includes('foto')) {
             await connection.query(`ALTER TABLE produto ADD COLUMN foto VARCHAR(255) NULL AFTER status`);
+        }
+        const constraintsProduto = [
+            ['chk_produto_preco_custo', 'CHECK (preco_custo >= 0)'],
+            ['chk_produto_preco_venda', 'CHECK (preco_venda >= 0)'],
+            ['chk_produto_estoque', 'CHECK (estoque_atual >= 0 AND estoque_minimo >= 0)']
+        ];
+        for (const [nome, expressao] of constraintsProduto) {
+            const [constraint] = await connection.query(`
+                SELECT COUNT(*) AS total
+                FROM information_schema.table_constraints
+                WHERE constraint_schema = DATABASE()
+                  AND table_name = 'produto'
+                  AND constraint_name = ?
+                  AND constraint_type = 'CHECK'
+            `, [nome]);
+            if (constraint[0].total === 0) {
+                await connection.query(`ALTER TABLE produto ADD CONSTRAINT \`${nome}\` ${expressao}`);
+            }
         }
 
         // 5. Seeds: Tipos de Usuários
@@ -140,7 +186,29 @@ async function initDatabase() {
 
         // 7. Seed: Usuário Admin Inicial (caso não exista nenhum usuário)
         const [usuariosExistentes] = await connection.query(`SELECT COUNT(*) as total FROM usuario`);
+        const senhaAdminLegada = 'admin123';
+        const hashAdminLegado = 'scrypt$a23f4c2b9ec4dca3f8697d43dd0cbf4a$c7008aee41bb96224bc9064bbdd76f04d6774f65759b485067fde94ea3bb54c2264fbb68a42d89d1000139179dbe656ea745179a140c73cc177f3ef04ac667f9';
+        const [adminLegado] = await connection.query(`
+            SELECT id_usuario, senha FROM usuario WHERE login = 'admin' LIMIT 1
+        `);
+        if (adminLegado.length > 0 &&
+            [senhaAdminLegada, hashAdminLegado].includes(adminLegado[0].senha)) {
+            const senhaConfigurada = process.env.ADMIN_INITIAL_PASSWORD;
+            if (typeof senhaConfigurada !== 'string' || senhaConfigurada.length < 12) {
+                throw new Error('A conta admin ainda usa a credencial inicial conhecida. Configure ADMIN_INITIAL_PASSWORD com pelo menos 12 caracteres para substituí-la.');
+            }
+            await connection.query(
+                `UPDATE usuario SET senha = ? WHERE id_usuario = ?`,
+                [await hashPassword(senhaConfigurada), adminLegado[0].id_usuario]
+            );
+            console.log('✔ Credencial inicial da conta admin substituída pela senha configurada.');
+        }
         if (usuariosExistentes[0].total === 0) {
+            const senhaConfigurada = process.env.ADMIN_INITIAL_PASSWORD;
+            if (typeof senhaConfigurada !== 'string' || senhaConfigurada.length < 12) {
+                throw new Error('Configure ADMIN_INITIAL_PASSWORD com pelo menos 12 caracteres para criar o administrador inicial.');
+            }
+            const senhaInicial = await hashPassword(senhaConfigurada);
             await connection.query(`
                 INSERT INTO usuario (nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -150,11 +218,11 @@ async function initDatabase() {
                 'admin',
                 'admin@pdv.com',
                 '(11) 99999-9999',
-                'admin123',
+                senhaInicial,
                 'ATIVO',
                 1
             ]);
-            console.log('✔ Usuário admin inicial criado: login="admin", senha="admin123"');
+            console.log('✔ Usuário administrador inicial criado.');
         }
 
         // 8. Seed: Produtos Iniciais (caso não exista nenhum produto)
@@ -251,12 +319,49 @@ async function initDatabase() {
                 motivo VARCHAR(255),
                 observacao VARCHAR(255),
                 CONSTRAINT fk_movimentacao_produto FOREIGN KEY (id_produto) REFERENCES produto(id_produto),
-                CONSTRAINT fk_movimentacao_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+                CONSTRAINT fk_movimentacao_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                CONSTRAINT fk_movimentacao_venda FOREIGN KEY (id_venda) REFERENCES venda(id_venda)
             );
         `);
 
+        const [movementSaleForeignKey] = await connection.query(`
+            SELECT COUNT(*) AS total
+            FROM information_schema.table_constraints
+            WHERE constraint_schema = DATABASE()
+              AND table_name = 'movimentacao_estoque'
+              AND constraint_name = 'fk_movimentacao_venda'
+              AND constraint_type = 'FOREIGN KEY'
+        `);
+        if (movementSaleForeignKey[0].total === 0) {
+            await connection.query(`
+                ALTER TABLE movimentacao_estoque
+                ADD CONSTRAINT fk_movimentacao_venda
+                FOREIGN KEY (id_venda) REFERENCES venda(id_venda)
+            `);
+        }
+
+        const indices = [
+            ['venda', 'idx_venda_data', 'data_hora'],
+            ['venda', 'idx_venda_status', 'status'],
+            ['item_venda', 'idx_item_venda_venda', 'id_venda'],
+            ['item_venda', 'idx_item_venda_produto', 'id_produto'],
+            ['movimentacao_estoque', 'idx_movimentacao_data', 'data_hora'],
+            ['movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto'],
+            ['produto', 'idx_produto_nome', 'nome']
+        ];
+        for (const [table, index, column] of indices) {
+            const [existing] = await connection.query(`
+                SELECT COUNT(*) AS total
+                FROM information_schema.statistics
+                WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?
+            `, [table, index]);
+            if (existing[0].total === 0) {
+                await connection.query(`CREATE INDEX \`${index}\` ON \`${table}\` (\`${column}\`)`);
+            }
+        }
+
         // Seeds: Formas de Pagamento
-        const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito', 'Vale-Alimentação'];
+        const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito', 'Vale-Alimentação', 'Vale-Refeição'];
         for (const forma of formasPagamento) {
             await connection.query(`INSERT IGNORE INTO forma_pagamento (descricao) VALUES (?)`, [forma]);
         }
@@ -284,4 +389,3 @@ if (require.main === module) {
 }
 
 module.exports = initDatabase;
-

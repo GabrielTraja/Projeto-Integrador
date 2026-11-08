@@ -8,12 +8,14 @@ const auth = {
         return dados ? JSON.parse(dados) : null;
     },
 
-    salvarUsuario(usuario) {
+    salvarUsuario(usuario, token) {
         localStorage.setItem('pdv_usuario', JSON.stringify(usuario));
+        localStorage.setItem('pdv_token', token);
     },
 
     limparSessao() {
         localStorage.removeItem('pdv_usuario');
+        localStorage.removeItem('pdv_token');
     },
 
     logout() {
@@ -25,11 +27,11 @@ const auth = {
         const usuario = this.obterUsuario();
         const paginaAtual = window.location.pathname.toLowerCase();
         const ehPaginaPublica = paginaAtual.endsWith('login.html') || 
-                                paginaAtual.endsWith('cadastrousuario.html') ||
                                 paginaAtual === '/' ||
                                 paginaAtual.endsWith('index.html');
 
-        if (!usuario && !ehPaginaPublica) {
+        if ((!usuario || !localStorage.getItem('pdv_token')) && !ehPaginaPublica) {
+            this.limparSessao();
             window.location.href = 'login.html';
             return null;
         }
@@ -63,4 +65,3 @@ const auth = {
 document.addEventListener('DOMContentLoaded', () => {
     auth.atualizarCabecalho();
 });
-

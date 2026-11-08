@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
     id_tipo_usuario INT NOT NULL,
     data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_usuario_email (email),
 
     CONSTRAINT fk_usuario_tipo
         FOREIGN KEY (id_tipo_usuario)
@@ -278,28 +279,51 @@ ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 INSERT INTO forma_pagamento (descricao) VALUES
 ('Dinheiro'),
 ('Pix'),
-('Cartao de Debito'),
-('Cartao de Credito'),
-('Vale-Alimentacao'),
-('Vale-Refeicao')
+('Cartão de Débito'),
+('Cartão de Crédito'),
+('Vale-Alimentação'),
+('Vale-Refeição')
 ON DUPLICATE KEY UPDATE descricao = VALUES(descricao);
 
 -- =====================================================
--- 14. DADOS INICIAIS: USUARIO ADMINISTRADOR PADRAO
+-- 14. USUARIO ADMINISTRADOR
 -- =====================================================
-
-INSERT INTO usuario (id_usuario, nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
-VALUES (1, 'Administrador do Sistema', '000.000.000-00', 'admin', 'admin@pdv.com', '(11) 99999-9999', 'admin123', 'ATIVO', 1)
-ON DUPLICATE KEY UPDATE nome = VALUES(nome);
+-- O administrador é provisionado por initDb.js com ADMIN_INITIAL_PASSWORD.
+-- Não insira credenciais padrão neste script.
 
 -- =====================================================
 -- 15. INDICES PARA CONSULTAS FREQUENTES
 -- =====================================================
 
-CREATE INDEX idx_venda_data ON venda(data_hora);
-CREATE INDEX idx_venda_status ON venda(status);
-CREATE INDEX idx_item_venda_venda ON item_venda(id_venda);
-CREATE INDEX idx_item_venda_produto ON item_venda(id_produto);
-CREATE INDEX idx_movimentacao_data ON movimentacao_estoque(data_hora);
-CREATE INDEX idx_movimentacao_produto ON movimentacao_estoque(id_produto);
-CREATE INDEX idx_produto_nome ON produto(nome);
+DROP PROCEDURE IF EXISTS criar_indice_se_ausente;
+DELIMITER //
+CREATE PROCEDURE criar_indice_se_ausente(
+    IN tabela VARCHAR(64),
+    IN indice VARCHAR(64),
+    IN coluna VARCHAR(64)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.statistics
+        WHERE table_schema = DATABASE()
+          AND table_name = tabela
+          AND index_name = indice
+    ) THEN
+        SET @ddl_indice = CONCAT(
+            'CREATE INDEX `', indice, '` ON `', tabela, '` (`', coluna, '`)'
+        );
+        PREPARE instrucao_indice FROM @ddl_indice;
+        EXECUTE instrucao_indice;
+        DEALLOCATE PREPARE instrucao_indice;
+    END IF;
+END//
+DELIMITER ;
+
+CALL criar_indice_se_ausente('venda', 'idx_venda_data', 'data_hora');
+CALL criar_indice_se_ausente('venda', 'idx_venda_status', 'status');
+CALL criar_indice_se_ausente('item_venda', 'idx_item_venda_venda', 'id_venda');
+CALL criar_indice_se_ausente('item_venda', 'idx_item_venda_produto', 'id_produto');
+CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_data', 'data_hora');
+CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto');
+CALL criar_indice_se_ausente('produto', 'idx_produto_nome', 'nome');
+DROP PROCEDURE criar_indice_se_ausente;
