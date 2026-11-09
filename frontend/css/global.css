@@ -4,28 +4,28 @@
    ========================================================================== */
 
 :root {
-  --primary: #0f172a;
-  --primary-hover: #1e293b;
-  --secondary: #334155;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
+  --primary: #722f37;
+  --primary-hover: #5d252c;
+  --secondary: #4a3333;
+  --accent: #c6a15b;
+  --accent-hover: #a8843f;
   --success: #16a34a;
   --success-hover: #15803d;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --warning: #f59e0b;
   
-  --bg-main: #f4f6f9;
-  --bg-card: #ffffff;
-  --sidebar-bg: #e2e8f0;
-  --sidebar-hover: #cbd5e1;
+  --bg-main: #faf6ef;
+  --bg-card: #fffdf9;
+  --sidebar-bg: #f0e7d9;
+  --sidebar-hover: #e7d5b7;
   
-  --border: #cbd5e1;
-  --border-light: #e2e8f0;
+  --border: #d9cdbd;
+  --border-light: #e9dfd2;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #f8fafc;
+  --text-main: #292929;
+  --text-muted: #6d5f57;
+  --text-light: #faf6ef;
   
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -77,23 +77,17 @@ body.layout-dashboard {
 .company-name {
   display: flex;
   align-items: center;
-  gap: 10px;
+  min-width: 0;
 }
 
-.company-name span {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
-.company-name .badge-pdv {
-  background-color: var(--accent);
-  color: #ffffff;
-  font-size: 0.75rem;
-  padding: 2px 8px;
+.company-logo {
+  display: block;
+  width: 240px;
+  height: 50px;
+  object-fit: cover;
+  object-position: center;
   border-radius: var(--radius-sm);
-  font-weight: 600;
+  background-color: var(--bg-main);
 }
 
 .user-profile {
@@ -184,7 +178,7 @@ body.layout-dashboard {
 .menu-list li:hover a,
 .menu-list li a.active {
   background-color: var(--sidebar-hover);
-  color: var(--accent);
+  color: var(--primary);
 }
 
 /* ==========================================================================
@@ -261,7 +255,7 @@ body.layout-dashboard {
 .select-category:focus,
 .form-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.22);
 }
 
 .btn-search {
@@ -284,7 +278,7 @@ body.layout-dashboard {
 .btn-add-product,
 .btn-primary {
   padding: 10px 18px;
-  background-color: var(--success);
+  background-color: var(--primary);
   color: #ffffff;
   text-decoration: none;
   border-radius: var(--radius-sm);
@@ -301,7 +295,7 @@ body.layout-dashboard {
 
 .btn-add-product:hover,
 .btn-primary:hover {
-  background-color: var(--success-hover);
+  background-color: var(--primary-hover);
 }
 
 /* ==========================================================================
@@ -426,23 +420,23 @@ body.layout-dashboard {
 }
 
 .role-admin {
-  background-color: #e0e7ff;
-  color: #3730a3;
+  background-color: #f2e4e5;
+  color: #722f37;
 }
 
 .role-gerente {
-  background-color: #f3e8ff;
-  color: #6b21a8;
+  background-color: #f5eddb;
+  color: #70521c;
 }
 
 .role-caixa {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #f5e8ce;
+  color: #775515;
 }
 
 .role-estoque {
-  background-color: #e0f2fe;
-  color: #075985;
+  background-color: #ece8e1;
+  color: #51473e;
 }
 
 /* Botões de Ação na Tabela */
@@ -471,8 +465,8 @@ body.layout-dashboard {
 }
 
 .btn-action.edit:hover {
-  background-color: #e0f2fe;
-  border-color: #7dd3fc;
+  background-color: #f5eddb;
+  border-color: var(--accent);
 }
 
 .btn-action.delete:hover {
@@ -578,3 +572,21 @@ body.layout-dashboard {
   }
 }
 
+@media (max-width: 600px) {
+  .top-header {
+    padding: 0 12px;
+  }
+
+  .company-logo {
+    width: 150px;
+    height: 42px;
+  }
+
+  .user-profile {
+    gap: 8px;
+  }
+
+  .user-role-badge {
+    display: none;
+  }
+}

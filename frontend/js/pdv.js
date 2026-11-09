@@ -55,14 +55,15 @@ async function carregarProdutos() {
         if (categoria) params.append('categoria', categoria);
 
         const url = `/api/produtos${params.toString() ? '?' + params.toString() : ''}`;
-        produtosCatalogo = await api.get(url);
+        const produtos = await api.get(url);
+        produtosCatalogo = produtos.filter(produto => produto.status === 'ATIVO');
 
         renderizarCards(produtosCatalogo);
     } catch (erro) {
         console.error('Erro ao buscar produtos no banco:', erro);
         listaProdutos.innerHTML = `
             <div class="pdv-empty" style="color: #ef4444; border-color: #fca5a5;">
-                Erro ao conectar ao banco de dados: ${erro.message}
+                Erro ao conectar ao banco de dados: ${escapeHtml(erro.message)}
             </div>
         `;
     }
@@ -104,20 +105,20 @@ function renderizarCards(produtos) {
         }
 
         const precoFormatado = formatarMoeda(prod.preco_venda);
-        const imagemSrc = prod.foto || 'icones/produtos.png';
+        const imagemSrc = escapeHtml(safeImageUrl(prod.foto));
 
         html += `
             <div class="stock-card" onclick="adicionarAoCarrinho(${prod.id_produto})">
                 <div class="stock-card-header">
-                    <img src="${imagemSrc}" alt="${prod.nome}" class="product-image" onerror="this.src='icones/produtos.png'">
+                    <img src="${imagemSrc}" alt="${escapeHtml(prod.nome)}" class="product-image" onerror="this.src='icones/produtos.png'">
                     <span class="${statusClass}">${statusTexto}</span>
                 </div>
                 <div class="stock-card-body">
-                    <span class="product-category">${prod.categoria_nome || 'Geral'}</span>
-                    <h3 class="product-name" title="${prod.nome}">${prod.nome}</h3>
-                    ${prod.codigo_barras ? `<span class="product-code">Cód: ${prod.codigo_barras}</span>` : ''}
+                    <span class="product-category">${escapeHtml(prod.categoria_nome || 'Geral')}</span>
+                    <h3 class="product-name" title="${escapeHtml(prod.nome)}">${escapeHtml(prod.nome)}</h3>
+                    ${prod.codigo_barras ? `<span class="product-code">Cód: ${escapeHtml(prod.codigo_barras)}</span>` : ''}
                     <div class="product-stock">
-                        Estoque: <strong>${estoqueAtual} ${prod.unidade_medida || 'UN'}</strong>
+                        Estoque: <strong>${estoqueAtual} ${escapeHtml(prod.unidade_medida || 'UN')}</strong>
                     </div>
                     <div class="product-price">${precoFormatado}</div>
                     <button 
@@ -267,8 +268,8 @@ function atualizarTerminal() {
             <tr>
                 <td style="color: #94a3b8; font-weight: 600;">${index + 1}</td>
                 <td>
-                    <span class="terminal-item-name">${item.nome}</span>
-                    ${item.codigo_barras ? `<span class="terminal-item-code">${item.codigo_barras}</span>` : ''}
+                    <span class="terminal-item-name">${escapeHtml(item.nome)}</span>
+                    ${item.codigo_barras ? `<span class="terminal-item-code">${escapeHtml(item.codigo_barras)}</span>` : ''}
                 </td>
                 <td>
                     <div class="quantidade-controle">
@@ -418,7 +419,7 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
     itensVendidos.forEach(item => {
         itensHtml += `
             <div class="receipt-item-row">
-                <span>${item.quantidade}x ${item.nome}</span>
+                <span>${item.quantidade}x ${escapeHtml(item.nome)}</span>
                 <strong>${formatarMoeda(item.quantidade * item.preco_venda)}</strong>
             </div>
         `;
@@ -438,7 +439,7 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
         </div>
         <div class="receipt-item-row" style="color: #64748b;">
             <span>Forma de Pagamento:</span>
-            <span>${formaPagamento}</span>
+            <span>${escapeHtml(formaPagamento)}</span>
         </div>
         ${formaPagamento === 'Dinheiro' && venda?.troco > 0 ? `
             <div class="receipt-item-row" style="color: #15803d; font-weight: 600;">
@@ -533,4 +534,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnFechar) btnFechar.onclick = fecharModalRecibo;
     if (btnNova) btnNova.onclick = fecharModalRecibo;
 });
-

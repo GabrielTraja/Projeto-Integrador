@@ -70,14 +70,14 @@ Projeto Integrador/
 ## ⚙️ 2. Pré-requisitos
 
 1. **Node.js** (versão 18 ou superior instalada).
-2. **MySQL Server** (versão 8.0 ou superior em execução).
+2. **MySQL Server** (versão 8.0.16 ou superior em execução; a inicialização automática usa restrições `CHECK`).
 
 ---
 
 ## 🚀 3. Como Rodar o Projeto
 
 ### Passo 1: Configurar o arquivo `.env`
-Verifique ou edite o arquivo `.env` (na raiz do projeto ou dentro de `backend/.env`) com as credenciais do seu banco MySQL local:
+Crie ou edite um arquivo `.env` na raiz do projeto ou em `backend/.env`. Use apenas um local para evitar configurações divergentes:
 
 ```env
 DB_HOST=localhost
@@ -85,7 +85,15 @@ DB_USER=root
 DB_PASS=SuaSenhaDoMySQL
 DB_NAME=pdv
 PORT=3000
+ADMIN_INITIAL_PASSWORD=troque-por-uma-senha-unica-com-12-caracteres-ou-mais
+AUTH_TOKEN_SECRET=troque-por-um-segredo-aleatorio-com-32-caracteres-ou-mais
 ```
+
+Substitua os dois últimos valores antes de iniciar. `ADMIN_INITIAL_PASSWORD` é usado quando a tabela de usuários está vazia e para substituir a credencial inicial conhecida em instalações antigas; escolha uma senha exclusiva com pelo menos 12 caracteres e não a compartilhe. `AUTH_TOKEN_SECRET` deve ter pelo menos 32 caracteres, permanecer igual entre reinicializações e não pode ser publicado. Gere um segredo aleatório, por exemplo, com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+
+O usuário MySQL precisa poder criar o banco e tabelas e executar `CREATE`, `ALTER`, `SELECT`, `INSERT`, `UPDATE` e `DELETE`. Se a base já tiver usuários com e-mails duplicados, corrija-os antes de iniciar: a inicialização adiciona unicidade ao e-mail. Também corrija produtos existentes com preços ou estoque negativos antes de aplicar as restrições do esquema. Faça backup do banco antes de iniciar a migração.
+
+Para desenvolver com o frontend em outra origem/porta, defina `window.PDV_API_BASE` antes de carregar `js/api.js`; por padrão, o projeto usa `http://localhost:3000` em desenvolvimento local e a própria origem quando servido pelo backend ou em produção. O cadastro de usuários requer uma sessão de Administrador.
 
 ### Passo 2: Instalar as dependências (caso necessário)
 No terminal, dentro da pasta `backend`:
@@ -114,15 +122,11 @@ Abra o navegador no endereço:
 
 ---
 
-## 🔑 4. Acesso Padrão ao Sistema
+## 🔑 4. Primeiro acesso
 
-O sistema cria automaticamente um usuário Administrador inicial caso o banco esteja vazio:
+Quando a tabela de usuários estiver vazia, a inicialização cria o usuário administrador `admin` e aplica o valor de `ADMIN_INITIAL_PASSWORD` como senha, armazenando somente o hash. A mesma variável também substitui a senha inicial conhecida nas instalações antigas. Não há senha padrão embutida no projeto. Se a tabela já tiver outros usuários, nenhum administrador adicional é criado automaticamente; confirme que há uma conta ativa com perfil Administrador antes de usar as telas de gerenciamento.
 
-| Campo | Valor Padrão |
-| :--- | :--- |
-| **Login** | `admin` |
-| **Senha** | `admin123` |
-| **Perfil** | `Administrador` |
+O script SQL manual (`backend/src/config/pdv.sql`) cria a estrutura e os dados de referência, mas não cria uma conta administrativa. Para o provisionamento inicial automático, configure as variáveis acima e inicie a aplicação.
 
 ---
 
@@ -142,4 +146,3 @@ O sistema cria automaticamente um usuário Administrador inicial caso o banco es
 
 ### Reaproveitamento de Código (CRUD do index original)
 - As funções `salvarDados()`, `mostrar()`, `editar()`, `editarDados()` e `deletar()`, originalmente criadas no `index.html`, foram preservadas conceitualmente e integradas às rotas da API REST do backend via `fetch` assíncrono.
-

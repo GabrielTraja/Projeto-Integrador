@@ -758,3 +758,108 @@
         grid-template-columns: 1fr;
     }
 }
+
+.pdv-content {
+    background-color: var(--bg-main);
+}
+
+.pdv-catalog .welcome-section h1,
+.terminal-header h2,
+.terminal-item-name,
+.quantidade-controle span {
+    color: var(--primary);
+}
+
+.pdv-catalog .welcome-section p,
+.pdv-loading,
+.pdv-empty,
+.product-stock {
+    color: var(--text-muted);
+}
+
+.pdv-catalog .filter-container,
+.stock-card,
+.pdv-terminal {
+    background-color: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+.pdv-catalog .input-search,
+.pdv-catalog .select-category,
+.barcode-input-group input,
+.select-payment,
+.terminal-payment-field input {
+    border-color: var(--border);
+    color: var(--text-main);
+}
+
+.pdv-catalog .input-search:focus,
+.pdv-catalog .select-category:focus,
+.barcode-input-group input:focus,
+.select-payment:focus,
+.terminal-payment-field input:focus {
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.22);
+}
+
+.pdv-catalog .btn-search,
+.barcode-input-group button,
+.btn-adicionar,
+.btn-finalizar {
+    background-color: var(--primary);
+}
+
+.pdv-catalog .btn-search:hover,
+.barcode-input-group button:hover,
+.btn-adicionar:hover,
+.btn-finalizar:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+
+.stock-card:hover {
+    border-color: var(--accent);
+}
+
+.stock-card-header,
+.terminal-header,
+.terminal-table th {
+    background-color: var(--sidebar-bg);
+}
+
+.product-name,
+.product-stock strong,
+.terminal-subtotal span {
+    color: var(--text-main);
+}
+
+.product-category,
+.terminal-change {
+    background-color: var(--bg-main);
+}
+
+.product-price,
+.terminal-subtotal strong,
+.receipt-total-row {
+    color: var(--primary);
+}
+
+.spinner {
+    border-top-color: var(--primary);
+}
+
+.terminal-table th,
+.terminal-table td {
+    border-color: var(--border-light);
+}
+
+.terminal-table th {
+    color: var(--secondary);
+}
+
+.terminal-table td {
+    color: var(--text-main);
+}
+
+.terminal-footer {
+    border-top-color: var(--border-light);
+}

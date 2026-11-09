@@ -23,7 +23,7 @@ async function carregarDados() {
         console.error('Erro ao carregar produtos:', erro);
         const tbody = document.querySelector('.stock-table tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar produtos: ${erro.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar produtos: ${escapeHtml(erro.message)}</td></tr>`;
         }
     }
 }
@@ -50,14 +50,14 @@ function mostrar() {
         html += `
             <tr class="${estoqueBaixo ? 'low-stock-row' : ''}">
                 <td class="img-cell">
-                    <img src="${item.foto || 'icones/produtos.png'}" alt="${item.nome}" class="product-img">
+                    <img src="${escapeHtml(safeImageUrl(item.foto))}" alt="${escapeHtml(item.nome)}" class="product-img">
                 </td>
                 <td class="product-name">
-                    ${item.nome}
-                    ${item.codigo_barras ? `<br><span class="product-code">Cód: ${item.codigo_barras}</span>` : ''}
+                    ${escapeHtml(item.nome)}
+                    ${item.codigo_barras ? `<br><span class="product-code">Cód: ${escapeHtml(item.codigo_barras)}</span>` : ''}
                 </td>
-                <td>${item.unidade_medida || 'UN'}</td>
-                <td>${item.categoria_nome || 'Geral'}</td>
+                <td>${escapeHtml(item.unidade_medida || 'UN')}</td>
+                <td>${escapeHtml(item.categoria_nome || 'Geral')}</td>
                 <td>${precoCustoFormatado}</td>
                 <td><strong>${precoVendaFormatado}</strong></td>
                 <td>${estoqueMin}</td>
@@ -248,4 +248,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         formProduto.onsubmit = salvarDados;
     }
 });
-

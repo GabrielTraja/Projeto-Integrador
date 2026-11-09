@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Atualiza contadores dinâmicos nos cartões
     try {
         const produtos = await api.get('/api/produtos');
-        const usuarios = await api.get('/api/usuarios');
 
         const cardEstoqueP = document.querySelector('.card-item:nth-child(3) p');
         if (cardEstoqueP) {
@@ -43,13 +42,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardEstoqueP.innerHTML = `Total de <strong>${produtos.length}</strong> produtos cadastrados. <br><span style="color:#ef4444; font-weight:600;">${estoqueBaixo} produto(s) com estoque baixo!</span>`;
         }
 
-        const cardUsuariosP = document.querySelector('.card-item:nth-child(4) p');
-        if (cardUsuariosP) {
-            const ativos = usuarios.filter(u => u.status === 'ATIVO').length;
-            cardUsuariosP.innerHTML = `Total de <strong>${usuarios.length}</strong> usuários (${ativos} ativos no sistema).`;
+        if ([1, 2].includes(Number(usuario?.id_tipo_usuario))) {
+            const usuarios = await api.get('/api/usuarios');
+            const cardUsuariosP = document.querySelector('.card-item:nth-child(4) p');
+            if (cardUsuariosP) {
+                const ativos = usuarios.filter(u => u.status === 'ATIVO').length;
+                cardUsuariosP.innerHTML = `Total de <strong>${usuarios.length}</strong> usuários (${ativos} ativos no sistema).`;
+            }
         }
     } catch (e) {
         console.warn('Dashboard stats:', e.message);
     }
 });
-
