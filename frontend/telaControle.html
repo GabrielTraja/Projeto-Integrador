@@ -31,7 +31,7 @@
             <li><a href="cadastroProdutos.html"><img src="icones/produtos.png" alt="Produtos"><span>Produtos</span></a></li>
             <li><a href="controleUsuarios.html"><img src="icones/usuarios.png" alt="Usuários"><span>Usuários</span></a></li>
             <li><a href="#"><img src="icones/relatorio.png" alt="Relatórios"><span>Relatórios</span></a></li>
-            <li><a href="#"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
+            <li><a href="#configuracoes"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
         </ul>
     </nav>
 
@@ -96,10 +96,117 @@
             </div>
 
         </div>
+
+        <section id="configuracoes" class="settings-section" aria-labelledby="configuracoesTitulo">
+            <div class="settings-heading">
+                <div>
+                    <h2 id="configuracoesTitulo">Dados do Estabelecimento e Impressão de Comprovantes</h2>
+                    <p>Cadastre os dados da empresa e personalize os comprovantes não fiscais impressos no PDV.</p>
+                </div>
+            </div>
+
+            <form id="formConfiguracaoEstabelecimento" class="settings-form">
+                <fieldset class="settings-fieldset">
+                    <legend>Dados do estabelecimento</legend>
+                    <div class="settings-grid">
+                        <label>Nome fantasia *
+                            <input name="nome_fantasia" id="nome_fantasia" maxlength="120" required>
+                        </label>
+                        <label>Razão social
+                            <input name="razao_social" id="razao_social" maxlength="160">
+                        </label>
+                        <label>CNPJ
+                            <input name="cnpj" id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" required>
+                        </label>
+                        <label>Inscrição estadual
+                            <input name="inscricao_estadual" id="inscricao_estadual" maxlength="30">
+                        </label>
+                        <label>Telefone/WhatsApp
+                            <input name="telefone" id="telefone" type="tel" maxlength="30">
+                        </label>
+                        <label>E-mail
+                            <input name="email" id="email" type="email" maxlength="120">
+                        </label>
+                        <label>CEP
+                            <input name="cep" id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000">
+                        </label>
+                        <label>Endereço
+                            <input name="endereco" id="endereco" maxlength="160">
+                        </label>
+                        <label>Número
+                            <input name="numero" id="numero" maxlength="20">
+                        </label>
+                        <label>Complemento
+                            <input name="complemento" id="complemento" maxlength="100">
+                        </label>
+                        <label>Bairro
+                            <input name="bairro" id="bairro" maxlength="100">
+                        </label>
+                        <label>Cidade
+                            <input name="cidade" id="cidade" maxlength="100">
+                        </label>
+                        <label>Estado (UF)
+                            <input name="estado" id="estado" maxlength="2" autocomplete="address-level1">
+                        </label>
+                        <label>Instagram ou rede social
+                            <input name="rede_social" id="rede_social" maxlength="120" placeholder="@suaempresa">
+                        </label>
+                        <label class="settings-span-2">Mensagem de agradecimento
+                            <input name="mensagem_agradecimento" id="mensagem_agradecimento" maxlength="255">
+                        </label>
+                        <label class="settings-span-2">Logotipo (JPG, PNG ou WEBP; até 5 MB)
+                            <input name="arquivo_logotipo" id="arquivo_logotipo" type="file" accept="image/jpeg,image/png,image/webp">
+                        </label>
+                        <div class="logo-preview-wrap settings-span-2">
+                            <img id="previaLogotipo" alt="Prévia do logotipo" hidden>
+                            <button type="button" class="btn-settings-secondary" id="removerLogotipo" hidden>Remover logotipo</button>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="settings-fieldset">
+                    <legend>Configurações de impressão</legend>
+                    <div class="settings-grid">
+                        <label>Largura do papel
+                            <select name="largura_papel" id="largura_papel">
+                                <option value="58">58 mm</option>
+                                <option value="80">80 mm</option>
+                            </select>
+                        </label>
+                        <label>Quantidade de vias (1 a 5)
+                            <input name="quantidade_vias" id="quantidade_vias" type="number" min="1" max="5" step="1" required>
+                        </label>
+                    </div>
+                    <div class="settings-toggles">
+                        <label><input type="checkbox" name="exibir_logotipo"> Exibir logotipo</label>
+                        <label><input type="checkbox" name="exibir_cnpj"> Exibir CNPJ</label>
+                        <label><input type="checkbox" name="exibir_endereco"> Exibir endereço</label>
+                        <label><input type="checkbox" name="exibir_telefone"> Exibir telefone</label>
+                        <label><input type="checkbox" name="exibir_operador"> Exibir nome do operador</label>
+                        <label><input type="checkbox" name="exibir_numero_venda"> Exibir número da venda</label>
+                        <label><input type="checkbox" name="exibir_data_horario"> Exibir data e horário</label>
+                        <label><input type="checkbox" name="exibir_forma_pagamento"> Exibir forma de pagamento</label>
+                        <label><input type="checkbox" name="exibir_valor_recebido"> Exibir valor recebido</label>
+                        <label><input type="checkbox" name="exibir_troco"> Exibir troco</label>
+                    </div>
+                    <label class="settings-footer-label">Mensagem de rodapé
+                        <input name="mensagem_rodape" id="mensagem_rodape" maxlength="255">
+                    </label>
+                </fieldset>
+
+                <div class="settings-actions">
+                    <button type="submit" class="btn-settings-primary" id="salvarConfiguracao">Salvar configurações</button>
+                    <button type="button" class="btn-settings-secondary" id="visualizarComprovante">Visualizar Comprovante</button>
+                    <button type="button" class="btn-settings-secondary" id="imprimirTeste">Imprimir Teste</button>
+                </div>
+                <p id="mensagemConfiguracao" class="settings-message" role="status" aria-live="polite" hidden></p>
+            </form>
+        </section>
     </main>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/comprovante.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

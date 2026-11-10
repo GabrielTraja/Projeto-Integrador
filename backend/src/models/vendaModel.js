@@ -33,8 +33,8 @@ const VendaModel = {
         const entradaPagamentos = pagamentosInformados === undefined
             ? [{ forma_pagamento, valor: valor_recebido }]
             : pagamentosInformados;
-        if (!Array.isArray(entradaPagamentos) || entradaPagamentos.length < 1 || entradaPagamentos.length > 2) {
-            throw falhaValidacao('Informe uma forma de pagamento ou uma combinação de até duas formas.');
+        if (!Array.isArray(entradaPagamentos) || entradaPagamentos.length < 1) {
+            throw falhaValidacao('Informe ao menos uma forma de pagamento.');
         }
         if (!Number.isFinite(descontoInformado) || descontoInformado < 0) {
             throw falhaValidacao('O desconto deve ser um valor válido e não negativo.');
@@ -63,15 +63,6 @@ const VendaModel = {
                 valor_centavos: valorCentavos
             };
         });
-
-        if (new Set(pagamentosValidados.map(pagamento => pagamento.forma_pagamento)).size !== pagamentosValidados.length) {
-            throw falhaValidacao('As formas de pagamento de uma venda combinada devem ser diferentes.');
-        }
-        if (pagamentosValidados.length === 2 &&
-            (pagamentosValidados.filter(pagamento => pagamento.forma_pagamento === 'Dinheiro').length !== 1 ||
-                pagamentosValidados.every(pagamento => pagamento.forma_pagamento === 'Dinheiro'))) {
-            throw falhaValidacao('A combinação aceita dinheiro e uma forma complementar de Pix ou cartão.');
-        }
 
         const connection = await db.getConnection();
 
@@ -218,6 +209,7 @@ const VendaModel = {
                 `, [item.id_produto, id_usuario, id_venda, item.quantidade, `Venda PDV Cupom #${id_venda}`]);
             }
 
+            const movimentacoesPorForma = new Map();
             for (const pagamento of pagamentosValidados) {
                 const valorPagamento = pagamento.valor_registrado_centavos / 100;
                 await connection.query(`
@@ -225,6 +217,19 @@ const VendaModel = {
                     VALUES (?, ?, ?, 'APROVADO')
                 `, [id_venda, pagamento.id_forma_pagamento, valorPagamento]);
 
+                const movimentoExistente = movimentacoesPorForma.get(pagamento.id_forma_pagamento);
+                if (movimentoExistente) {
+                    movimentoExistente.valor_centavos += pagamento.valor_registrado_centavos;
+                } else {
+                    movimentacoesPorForma.set(pagamento.id_forma_pagamento, {
+                        forma_pagamento: pagamento.forma_pagamento,
+                        id_forma_pagamento: pagamento.id_forma_pagamento,
+                        valor_centavos: pagamento.valor_registrado_centavos
+                    });
+                }
+            }
+
+            for (const movimento of movimentacoesPorForma.values()) {
                 await connection.query(`
                     INSERT INTO movimentacao_caixa
                         (id_caixa, id_venda, id_usuario, id_forma_pagamento, tipo, valor, descricao)
@@ -233,9 +238,9 @@ const VendaModel = {
                     id_caixa,
                     id_venda,
                     id_usuario,
-                    pagamento.id_forma_pagamento,
-                    valorPagamento,
-                    `Venda PDV #${id_venda} - ${pagamento.forma_pagamento}`
+                    movimento.id_forma_pagamento,
+                    movimento.valor_centavos / 100,
+                    `Venda PDV #${id_venda} - ${movimento.forma_pagamento}`
                 ]);
             }
 

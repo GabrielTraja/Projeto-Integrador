@@ -126,6 +126,49 @@ test('registra pagamento combinado em dinheiro e PIX com duas entradas de caixa'
     assert.equal(chamadas.filter(({ sql }) => sql.startsWith('INSERT INTO movimentacao_caixa')).length, 2);
 });
 
+test('aceita pagamentos combinados entre quaisquer duas formas diferentes', async () => {
+    const formas = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito'];
+    const combinacoes = formas.flatMap((primeira, indice) =>
+        formas.slice(indice + 1).map(segunda => [primeira, segunda])
+    );
+
+    for (const [primeira, segunda] of combinacoes) {
+        estoqueAtual = 10;
+        const resultado = await VendaModel.criarVenda({
+            id_usuario: 5,
+            valor_recebido: 8,
+            pagamentos: [
+                { forma_pagamento: primeira, valor: 8 },
+                { forma_pagamento: segunda, valor: 12 }
+            ],
+            itens: [{ id_produto: 1, quantidade: 2 }]
+        });
+
+        assert.deepEqual(resultado.pagamentos.map(pagamento => pagamento.forma_pagamento), [primeira, segunda]);
+    }
+});
+
+test('registra pagamentos em várias etapas e permite reutilizar uma forma de pagamento', async () => {
+    const resultado = await VendaModel.criarVenda({
+        id_usuario: 5,
+        valor_recebido: 5,
+        pagamentos: [
+            { forma_pagamento: 'Dinheiro', valor: 5 },
+            { forma_pagamento: 'Pix', valor: 5 },
+            { forma_pagamento: 'Cartão de Débito', valor: 5 },
+            { forma_pagamento: 'Pix', valor: 5 }
+        ],
+        itens: [{ id_produto: 1, quantidade: 2 }]
+    });
+
+    assert.equal(resultado.pagamentos.length, 4);
+    assert.equal(resultado.pagamentos.reduce((total, pagamento) => total + pagamento.valor, 0), 20);
+    assert.equal(chamadas.filter(({ sql }) => sql.startsWith('INSERT INTO pagamento')).length, 4);
+    const movimentos = chamadas.filter(({ sql }) => sql.startsWith('INSERT INTO movimentacao_caixa'));
+    assert.equal(movimentos.length, 3);
+    assert.equal(movimentos.find(({ parametros }) => parametros[3] === 2).parametros[4], 10);
+});
+
 test('rejeita pagamento combinado cuja soma não cobre exatamente o total', async () => {
     await assert.rejects(VendaModel.criarVenda({
         id_usuario: 5,

@@ -5,6 +5,10 @@
 let produtosCatalogo = [];
 let carrinho = [];
 let vendaEmProcessamento = false;
+let pagamentosCombinadosPendentes = [];
+let configuracaoEstabelecimento = null;
+let ultimaVendaComprovante = null;
+let erroConfiguracaoEstabelecimento = null;
 
 // Formata valores numéricos para Moeda Brasileira (R$ 0,00)
 function formatarMoeda(valor) {
@@ -37,6 +41,33 @@ function limparMensagemVenda() {
     if (!elemento) return;
     elemento.textContent = '';
     elemento.hidden = true;
+}
+
+async function carregarConfiguracaoEstabelecimento() {
+    try {
+        configuracaoEstabelecimento = await api.get('/api/configuracoes/estabelecimento');
+        erroConfiguracaoEstabelecimento = null;
+    } catch (erro) {
+        erroConfiguracaoEstabelecimento = erro;
+        console.error('Não foi possível carregar as configurações de impressão:', erro);
+    }
+}
+
+function imprimirComprovanteVenda() {
+    if (!ultimaVendaComprovante) {
+        exibirMensagemVenda('O comprovante fica disponível somente após a confirmação da venda.', 'erro');
+        return;
+    }
+    if (!configuracaoEstabelecimento) {
+        exibirMensagemVenda(
+            `Não foi possível carregar as configurações de impressão${erroConfiguracaoEstabelecimento ? `: ${erroConfiguracaoEstabelecimento.message}` : ''}.`,
+            'erro'
+        );
+        return;
+    }
+    if (!window.comprovante.abrir(configuracaoEstabelecimento, ultimaVendaComprovante, 'venda')) {
+        exibirMensagemVenda('Permita a abertura de janelas para imprimir o comprovante.', 'erro');
+    }
 }
 
 // ==========================================================================
@@ -348,9 +379,8 @@ function calcularTroco() {
     const recebidoValido = recebidoPreenchido && Number.isFinite(valorRecebido) && valorRecebido >= 0;
     const recebidoCentavos = recebidoValido ? paraCentavos(valorRecebido) : 0;
     const pagamentoEmDinheiro = formaPagamento === 'Dinheiro';
-    const pagamentoValido = recebidoValido && (pagamentoEmDinheiro
-        ? recebidoCentavos > 0
-        : recebidoCentavos === totalCentavos);
+    const pagamentoValido = recebidoValido && recebidoCentavos > 0 &&
+        (pagamentoEmDinheiro || recebidoCentavos <= totalCentavos);
 
     if (labelRecebido) {
         labelRecebido.textContent = pagamentoEmDinheiro ? 'Valor Recebido:' : 'Valor do Pagamento:';
@@ -402,17 +432,19 @@ async function confirmarVenda() {
         calcularTroco();
         return;
     }
-    if (formaPagamento === 'Dinheiro' && valorRecebidoCentavos < totalCentavos) {
-        if (valorRecebidoCentavos <= 0) {
-            exibirMensagemVenda('Informe um valor em dinheiro maior que zero para dividir o pagamento.', 'erro');
-            valorRecebidoInput.focus();
-            return;
-        }
-        abrirModalPagamentoCombinado(valorRecebidoCentavos, totalCentavos);
+    if (valorRecebidoCentavos <= 0) {
+        exibirMensagemVenda('Informe um valor maior que zero para concluir o pagamento.', 'erro');
+        valorRecebidoInput.focus();
         return;
     }
-    if (formaPagamento !== 'Dinheiro' && valorRecebidoCentavos !== totalCentavos) {
-        exibirMensagemVenda(`Para esta forma de pagamento, informe exatamente o total da venda (${formatarMoeda(totalCentavos / 100)}).`, 'erro');
+    if (valorRecebidoCentavos < totalCentavos) {
+        abrirModalPagamentoCombinado([
+            { forma_pagamento: formaPagamento, valor_centavos: valorRecebidoCentavos }
+        ], totalCentavos);
+        return;
+    }
+    if (formaPagamento !== 'Dinheiro' && valorRecebidoCentavos > totalCentavos) {
+        exibirMensagemVenda(`O valor do pagamento não pode ser maior que o total da venda (${formatarMoeda(totalCentavos / 100)}).`, 'erro');
         valorRecebidoInput.focus();
         calcularTroco();
         return;
@@ -423,45 +455,107 @@ async function confirmarVenda() {
     ], formaPagamento, valorRecebidoCentavos / 100);
 }
 
-function abrirModalPagamentoCombinado(valorDinheiroCentavos, totalCentavos) {
+function abrirModalPagamentoCombinado(pagamentos, totalCentavos) {
     const modal = document.getElementById('modalPagamentoCombinado');
-    const dinheiroEl = document.getElementById('valorDinheiroCombinado');
+    const pagamentosEl = document.getElementById('pagamentosCombinados');
     const saldoEl = document.getElementById('saldoCombinado');
-    if (!modal || !dinheiroEl || !saldoEl) {
+    const formaRestanteEl = document.getElementById('formaPagamentoCombinado');
+    const valorPagamentoEl = document.getElementById('valorPagamentoCombinado');
+    const confirmarEl = document.getElementById('confirmarPagamentoCombinado');
+    if (!modal || !pagamentosEl || !saldoEl || !formaRestanteEl || !valorPagamentoEl || !confirmarEl) {
         exibirMensagemVenda('Não foi possível abrir as opções de pagamento combinado.', 'erro');
         return;
     }
 
-    dinheiroEl.textContent = formatarMoeda(valorDinheiroCentavos / 100);
-    saldoEl.textContent = formatarMoeda((totalCentavos - valorDinheiroCentavos) / 100);
+    pagamentosCombinadosPendentes = pagamentos;
+    const totalPagoCentavos = pagamentos.reduce((soma, pagamento) => soma + pagamento.valor_centavos, 0);
+    const saldoCentavos = totalCentavos - totalPagoCentavos;
+    pagamentosEl.replaceChildren(...pagamentos.map(pagamento => {
+        const linha = document.createElement('div');
+        linha.className = 'combined-payment-row';
+        const forma = document.createElement('span');
+        forma.textContent = pagamento.forma_pagamento;
+        const valor = document.createElement('strong');
+        valor.textContent = formatarMoeda(pagamento.valor_centavos / 100);
+        linha.append(forma, valor);
+        return linha;
+    }));
+    saldoEl.textContent = formatarMoeda(saldoCentavos / 100);
+    formaRestanteEl.replaceChildren(...['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito']
+        .filter(forma => forma !== pagamentos[pagamentos.length - 1].forma_pagamento)
+        .map(forma => {
+            const option = document.createElement('option');
+            option.value = forma;
+            option.textContent = forma;
+            return option;
+        }));
+    valorPagamentoEl.value = '';
+    valorPagamentoEl.max = (saldoCentavos / 100).toFixed(2);
+    valorPagamentoEl.placeholder = formatarMoeda(saldoCentavos / 100);
+    atualizarAcaoPagamentoCombinado();
     modal.classList.add('active');
-    document.getElementById('formaPagamentoCombinado')?.focus();
+    valorPagamentoEl.focus();
+}
+
+function atualizarAcaoPagamentoCombinado() {
+    const valorPagamentoInput = document.getElementById('valorPagamentoCombinado');
+    const confirmarEl = document.getElementById('confirmarPagamentoCombinado');
+    if (!valorPagamentoInput || !confirmarEl) return;
+
+    const totalPagoCentavos = pagamentosCombinadosPendentes.reduce(
+        (soma, pagamento) => soma + pagamento.valor_centavos,
+        0
+    );
+    const saldoCentavos = totalCarrinhoCentavos() - totalPagoCentavos;
+    const valorPagamentoCentavos = paraCentavos(valorPagamentoInput.value);
+    confirmarEl.textContent = valorPagamentoCentavos === saldoCentavos
+        ? 'Concluir venda'
+        : 'Adicionar pagamento';
 }
 
 function fecharModalPagamentoCombinado() {
     document.getElementById('modalPagamentoCombinado')?.classList.remove('active');
+    pagamentosCombinadosPendentes = [];
 }
 
 async function confirmarPagamentoCombinado() {
     if (vendaEmProcessamento) return;
     const totalCentavos = totalCarrinhoCentavos();
-    const valorDinheiro = Number(document.getElementById('valorRecebido')?.value);
-    const dinheiroCentavos = paraCentavos(valorDinheiro);
     const formaRestante = document.getElementById('formaPagamentoCombinado')?.value;
+    const valorPagamentoInput = document.getElementById('valorPagamentoCombinado');
+    const valorPagamento = Number(valorPagamentoInput?.value);
+    const valorPagamentoCentavos = paraCentavos(valorPagamento);
+    const totalPagoCentavos = pagamentosCombinadosPendentes.reduce(
+        (soma, pagamento) => soma + pagamento.valor_centavos,
+        0
+    );
+    const saldoCentavos = totalCentavos - totalPagoCentavos;
 
-    if (!Number.isFinite(valorDinheiro) || dinheiroCentavos <= 0 || dinheiroCentavos >= totalCentavos) {
-        fecharModalPagamentoCombinado();
-        exibirMensagemVenda('O valor em dinheiro deve ser maior que zero e menor que o total atualizado.', 'erro');
-        calcularTroco();
+    if (!Number.isFinite(valorPagamento) || valorPagamentoCentavos <= 0 ||
+        valorPagamentoCentavos > saldoCentavos || !formaRestante ||
+        formaRestante === pagamentosCombinadosPendentes[pagamentosCombinadosPendentes.length - 1]?.forma_pagamento) {
+        exibirMensagemVenda(`Informe um valor maior que zero e até ${formatarMoeda(saldoCentavos / 100)}.`, 'erro');
+        valorPagamentoInput?.focus();
         return;
     }
 
-    const saldoCentavos = totalCentavos - dinheiroCentavos;
+    const pagamentosAtualizados = [
+        ...pagamentosCombinadosPendentes,
+        { forma_pagamento: formaRestante, valor_centavos: valorPagamentoCentavos }
+    ];
+    const saldoAtualizadoCentavos = saldoCentavos - valorPagamentoCentavos;
+    if (saldoAtualizadoCentavos > 0) {
+        abrirModalPagamentoCombinado(pagamentosAtualizados, totalCentavos);
+        return;
+    }
+
+    const pagamentos = pagamentosAtualizados.map(pagamento => ({
+        forma_pagamento: pagamento.forma_pagamento,
+        valor: pagamento.valor_centavos / 100
+    }));
+    const formaPagamentoExibicao = pagamentos.map(pagamento => pagamento.forma_pagamento).join(' + ');
     fecharModalPagamentoCombinado();
-    await enviarVenda([
-        { forma_pagamento: 'Dinheiro', valor: dinheiroCentavos / 100 },
-        { forma_pagamento: formaRestante, valor: saldoCentavos / 100 }
-    ], 'Dinheiro + ' + formaRestante, dinheiroCentavos / 100);
+    await enviarVenda(pagamentos, formaPagamentoExibicao, totalCentavos / 100);
 }
 
 async function enviarVenda(pagamentos, formaPagamentoExibicao, valorRecebido) {
@@ -494,6 +588,8 @@ async function enviarVenda(pagamentos, formaPagamentoExibicao, valorRecebido) {
 
         // Exibe recibo da venda no modal
         exibirReciboSucesso(resposta.venda, carrinho, formaPagamentoExibicao);
+        const botaoImprimir = document.getElementById('imprimirComprovanteVenda');
+        if (botaoImprimir) botaoImprimir.hidden = false;
         exibirMensagemVenda(`Venda #${resposta.venda.id_venda} concluída com sucesso.`, 'sucesso');
 
         // Limpa carrinho e formulário
@@ -523,6 +619,18 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
         return;
     }
 
+    ultimaVendaComprovante = {
+        ...venda,
+        operador: auth.obterUsuario()?.nome || auth.obterUsuario()?.login || '',
+        forma_pagamento: formaPagamento,
+        itens: itensVendidos.map(item => ({
+            nome: item.nome,
+            quantidade: item.quantidade,
+            preco_unitario: item.preco_venda,
+            subtotal: Math.round(paraCentavos(item.preco_venda) * item.quantidade) / 100
+        }))
+    };
+
     let itensHtml = '';
     itensVendidos.forEach(item => {
         itensHtml += `
@@ -546,7 +654,7 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
     reciboConteudo.innerHTML = `
         <div style="text-align: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #cbd5e1;">
             <h4 style="margin: 0; color: #0f172a; font-size: 16px;">Comprovante de Venda</h4>
-            <span style="font-size: 12px; color: #64748b;">Cupom Não Fiscal #${venda?.id_venda || '1'}</span>
+            <span style="font-size: 12px; color: #64748b;">COMPROVANTE NÃO FISCAL #${venda?.id_venda || ''}</span>
         </div>
         <div style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
             ${itensHtml}
@@ -580,7 +688,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Verifica autenticação do operador
     auth.verificarAutenticacao();
 
-    // 2. Carrega categorias e produtos do banco de dados
+    // 2. Carrega as configurações persistidas de impressão e os dados de catálogo
+    await carregarConfiguracaoEstabelecimento();
     await carregarCategorias();
     await carregarProdutos();
 
@@ -665,11 +774,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnNova = document.getElementById('btnNovaVenda');
     if (btnFechar) btnFechar.onclick = fecharModalRecibo;
     if (btnNova) btnNova.onclick = fecharModalRecibo;
+    const btnImprimirComprovante = document.getElementById('imprimirComprovanteVenda');
+    if (btnImprimirComprovante) btnImprimirComprovante.onclick = imprimirComprovanteVenda;
 
     const btnFecharPagamento = document.getElementById('fecharPagamentoCombinado');
     const btnCancelarPagamento = document.getElementById('cancelarPagamentoCombinado');
     const btnConfirmarPagamento = document.getElementById('confirmarPagamentoCombinado');
+    const valorPagamentoCombinado = document.getElementById('valorPagamentoCombinado');
     if (btnFecharPagamento) btnFecharPagamento.onclick = fecharModalPagamentoCombinado;
     if (btnCancelarPagamento) btnCancelarPagamento.onclick = fecharModalPagamentoCombinado;
     if (btnConfirmarPagamento) btnConfirmarPagamento.onclick = confirmarPagamentoCombinado;
+    if (valorPagamentoCombinado) {
+        valorPagamentoCombinado.oninput = atualizarAcaoPagamentoCombinado;
+        valorPagamentoCombinado.onkeydown = (evento) => {
+            if (evento.key === 'Enter') {
+                evento.preventDefault();
+                confirmarPagamentoCombinado();
+            }
+        };
+    }
 });

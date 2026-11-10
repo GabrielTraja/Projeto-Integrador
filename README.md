@@ -149,11 +149,17 @@ O script SQL manual (`backend/src/config/pdv.sql`) cria a estrutura e os dados d
 
 ### Ponto de Venda (PDV)
 - Conclusão transacional de vendas com validação de carrinho, estoque e forma de pagamento.
-- Pagamento em dinheiro com cálculo de troco; PIX e cartões exigem o valor exato e não geram troco.
-- Se o dinheiro não cobrir o total, permite completar o saldo com PIX ou cartão e registra cada parcela separadamente.
+- Pagamento em dinheiro com cálculo de troco; pagamentos combinados permitem parcelas em diferentes formas até cobrir o total.
+- Após a conclusão, o operador pode imprimir um comprovante não fiscal conforme a largura e as opções cadastradas.
 - Cada venda aprovada registra itens, baixa de estoque, pagamento e entrada financeira em `movimentacao_caixa`.
 - O botão de confirmação bloqueia envios simultâneos; em caso de falha, a transação é revertida e a mensagem fica visível no terminal.
 - Execute `npm --prefix backend test` para validar as regras de pagamento, troco, estoque e movimentação do caixa.
+
+### Dados do estabelecimento e comprovantes
+- A seção **Configurações** do painel permite cadastrar os dados do estabelecimento, logotipo e opções de impressão.
+- A configuração é persistida em `configuracao_estabelecimento`, criada automaticamente por `initDb.js` ou pelo script `backend/src/config/pdv.sql`.
+- Administradores e gerentes podem alterar as configurações; operadores do PDV podem carregar e utilizar os dados para imprimir comprovantes após vendas confirmadas.
+- A pré-visualização e a impressão de teste usam dados demonstrativos identificados como prévia; comprovantes de venda usam exclusivamente os dados retornados pela venda concluída.
 
 ### Reaproveitamento de Código (CRUD do index original)
 - As funções `salvarDados()`, `mostrar()`, `editar()`, `editarDados()` e `deletar()`, originalmente criadas no `index.html`, foram preservadas conceitualmente e integradas às rotas da API REST do backend via `fetch` assíncrono.

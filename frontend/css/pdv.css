@@ -617,7 +617,8 @@
 }
 
 .select-payment,
-.terminal-payment-field input {
+.terminal-payment-field input,
+.combined-payment-body input {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid #cbd5e1;
@@ -629,7 +630,8 @@
 }
 
 .select-payment:focus,
-.terminal-payment-field input:focus {
+.terminal-payment-field input:focus,
+.combined-payment-body input:focus {
     border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
@@ -726,12 +728,22 @@
     color: #0f172a;
 }
 
+.combined-payment-list {
+    display: grid;
+    gap: 8px;
+}
+
+.combined-payment-list:empty {
+    display: none;
+}
+
 .combined-payment-body label {
     margin-bottom: -8px;
     font-weight: 600;
 }
 
-.combined-payment-body .select-payment {
+.combined-payment-body .select-payment,
+.combined-payment-body input {
     min-height: 40px;
 }
 
@@ -872,7 +884,8 @@
 .pdv-catalog .select-category,
 .barcode-input-group input,
 .select-payment,
-.terminal-payment-field input {
+.terminal-payment-field input,
+.combined-payment-body input {
     border-color: var(--border);
     color: var(--text-main);
 }
@@ -881,7 +894,8 @@
 .pdv-catalog .select-category:focus,
 .barcode-input-group input:focus,
 .select-payment:focus,
-.terminal-payment-field input:focus {
+.terminal-payment-field input:focus,
+.combined-payment-body input:focus {
     border-color: var(--accent-hover);
     box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.22);
 }

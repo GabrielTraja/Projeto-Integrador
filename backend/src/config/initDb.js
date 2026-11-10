@@ -264,6 +264,44 @@ async function initDatabase() {
         `);
 
         await connection.query(`
+            CREATE TABLE IF NOT EXISTS configuracao_estabelecimento (
+                id_configuracao TINYINT PRIMARY KEY,
+                nome_fantasia VARCHAR(120) NOT NULL DEFAULT '',
+                razao_social VARCHAR(160) NOT NULL DEFAULT '',
+                cnpj VARCHAR(18) NOT NULL DEFAULT '',
+                inscricao_estadual VARCHAR(30) NOT NULL DEFAULT '',
+                telefone VARCHAR(30) NOT NULL DEFAULT '',
+                email VARCHAR(120) NOT NULL DEFAULT '',
+                cep VARCHAR(9) NOT NULL DEFAULT '',
+                endereco VARCHAR(160) NOT NULL DEFAULT '',
+                numero VARCHAR(20) NOT NULL DEFAULT '',
+                complemento VARCHAR(100) NOT NULL DEFAULT '',
+                bairro VARCHAR(100) NOT NULL DEFAULT '',
+                cidade VARCHAR(100) NOT NULL DEFAULT '',
+                estado CHAR(2) NOT NULL DEFAULT '',
+                logotipo VARCHAR(255) NULL,
+                rede_social VARCHAR(120) NOT NULL DEFAULT '',
+                mensagem_agradecimento VARCHAR(255) NOT NULL DEFAULT '',
+                largura_papel TINYINT NOT NULL DEFAULT 80,
+                exibir_logotipo TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_cnpj TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_endereco TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_telefone TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_operador TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_numero_venda TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_data_horario TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_forma_pagamento TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_valor_recebido TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_troco TINYINT(1) NOT NULL DEFAULT 1,
+                mensagem_rodape VARCHAR(255) NOT NULL DEFAULT '',
+                quantidade_vias TINYINT UNSIGNED NOT NULL DEFAULT 1,
+                CONSTRAINT chk_configuracao_estabelecimento_id CHECK (id_configuracao = 1),
+                CONSTRAINT chk_configuracao_largura CHECK (largura_papel IN (58, 80)),
+                CONSTRAINT chk_configuracao_vias CHECK (quantidade_vias BETWEEN 1 AND 5)
+            );
+        `);
+
+        await connection.query(`
             CREATE TABLE IF NOT EXISTS venda (
                 id_venda INT AUTO_INCREMENT PRIMARY KEY,
                 data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

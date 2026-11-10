@@ -14,6 +14,7 @@ const usuarioRoutes = require('./src/routes/usuarioRoutes');
 const produtoRoutes = require('./src/routes/produtoRoutes');
 const categoriaRoutes = require('./src/routes/categoriaRoutes');
 const vendaRoutes = require('./src/routes/vendaRoutes');
+const configuracaoEstabelecimentoRoutes = require('./src/routes/configuracaoEstabelecimentoRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +45,7 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/produtos', produtoRoutes);
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/vendas', vendaRoutes);
+app.use('/api/configuracoes', configuracaoEstabelecimentoRoutes);
 
 // Health check
 app.get('/api/status', (req, res) => {
