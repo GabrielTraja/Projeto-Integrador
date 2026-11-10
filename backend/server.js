@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '7mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Caminho da pasta frontend
@@ -32,6 +32,10 @@ app.get('/', (req, res) => {
 });
 
 // Arquivos estáticos do frontend (CSS, JS, Imagens, Telas)
+app.use('/uploads', express.static(path.resolve(__dirname, 'uploads'), {
+    fallthrough: false,
+    maxAge: '1d'
+}));
 app.use(express.static(frontendPath));
 
 // Rotas da API REST

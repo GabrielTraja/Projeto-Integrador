@@ -4,6 +4,7 @@
 
 let produtosCatalogo = [];
 let carrinho = [];
+let vendaEmProcessamento = false;
 
 // Formata valores numéricos para Moeda Brasileira (R$ 0,00)
 function formatarMoeda(valor) {
@@ -11,6 +12,31 @@ function formatarMoeda(valor) {
         style: 'currency',
         currency: 'BRL'
     });
+}
+
+function paraCentavos(valor) {
+    return Math.round(Number(valor) * 100);
+}
+
+function totalCarrinhoCentavos() {
+    return carrinho.reduce((total, item) => (
+        total + Math.round(paraCentavos(item.preco_venda) * item.quantidade)
+    ), 0);
+}
+
+function exibirMensagemVenda(mensagem, tipo) {
+    const elemento = document.getElementById('mensagemVenda');
+    if (!elemento) return;
+    elemento.textContent = mensagem;
+    elemento.className = `pdv-venda-message pdv-venda-message-${tipo}`;
+    elemento.hidden = false;
+}
+
+function limparMensagemVenda() {
+    const elemento = document.getElementById('mensagemVenda');
+    if (!elemento) return;
+    elemento.textContent = '';
+    elemento.hidden = true;
 }
 
 // ==========================================================================
@@ -110,7 +136,7 @@ function renderizarCards(produtos) {
         html += `
             <div class="stock-card" onclick="adicionarAoCarrinho(${prod.id_produto})">
                 <div class="stock-card-header">
-                    <img src="${imagemSrc}" alt="${escapeHtml(prod.nome)}" class="product-image" onerror="this.src='icones/produtos.png'">
+                    <img src="${imagemSrc}" alt="${escapeHtml(prod.nome)}" class="product-image ${prod.foto ? 'product-image-photo' : 'product-image-placeholder'}" onerror="this.onerror=null; this.src='icones/produtos.png'; this.classList.add('product-image-placeholder'); this.classList.remove('product-image-photo');">
                     <span class="${statusClass}">${statusTexto}</span>
                 </div>
                 <div class="stock-card-body">
@@ -142,6 +168,7 @@ function renderizarCards(produtos) {
 // ==========================================================================
 
 function adicionarAoCarrinho(id_produto) {
+    if (vendaEmProcessamento) return;
     const produto = produtosCatalogo.find(p => p.id_produto === id_produto);
     if (!produto) return;
 
@@ -196,6 +223,7 @@ function adicionarPorCodigoBarras(codigo) {
 }
 
 function alterarQuantidade(id_produto, delta) {
+    if (vendaEmProcessamento) return;
     const item = carrinho.find(i => i.id_produto === id_produto);
     if (!item) return;
 
@@ -216,12 +244,13 @@ function alterarQuantidade(id_produto, delta) {
 }
 
 function removerItem(id_produto) {
+    if (vendaEmProcessamento) return;
     carrinho = carrinho.filter(i => i.id_produto !== id_produto);
     atualizarTerminal();
 }
 
 function limparVenda() {
-    if (carrinho.length === 0) return;
+    if (carrinho.length === 0 || vendaEmProcessamento) return;
 
     if (confirm('Deseja realmente limpar todos os itens da compra atual?')) {
         carrinho = [];
@@ -260,8 +289,8 @@ function atualizarTerminal() {
     let totalItens = 0;
 
     carrinho.forEach((item, index) => {
-        const itemSubtotal = item.quantidade * item.preco_venda;
-        totalGeral += itemSubtotal;
+        const itemSubtotalCentavos = Math.round(paraCentavos(item.preco_venda) * item.quantidade);
+        totalGeral += itemSubtotalCentavos;
         totalItens += item.quantidade;
 
         html += `
@@ -280,7 +309,7 @@ function atualizarTerminal() {
                 </td>
                 <td style="text-align: right; white-space: nowrap;">${formatarMoeda(item.preco_venda)}</td>
                 <td style="text-align: right; font-weight: 700; color: #166534; white-space: nowrap;">
-                    ${formatarMoeda(itemSubtotal)}
+                    ${formatarMoeda(itemSubtotalCentavos / 100)}
                 </td>
                 <td style="text-align: center;">
                     <button 
@@ -298,35 +327,44 @@ function atualizarTerminal() {
 
     tbody.innerHTML = html;
     if (quantidadeItensEl) quantidadeItensEl.textContent = totalItens;
-    if (subtotalEl) subtotalEl.textContent = formatarMoeda(totalGeral);
-    if (btnConfirmar) btnConfirmar.disabled = false;
+    if (subtotalEl) subtotalEl.textContent = formatarMoeda(totalGeral / 100);
 
     calcularTroco();
 }
 
 function calcularTroco() {
-    const subtotalEl = document.getElementById('subtotal');
     const valorRecebidoInput = document.getElementById('valorRecebido');
     const trocoEl = document.getElementById('troco');
     const trocoContainer = document.getElementById('trocoContainer');
+    const formaPagamento = document.getElementById('formaPagamento')?.value || 'Dinheiro';
+    const btnConfirmar = document.getElementById('confirmarVenda');
+    const labelRecebido = document.getElementById('valorRecebidoLabel');
 
-    if (!trocoEl) return;
+    if (!trocoEl || !valorRecebidoInput) return;
 
-    let subtotal = 0;
-    carrinho.forEach(item => {
-        subtotal += item.quantidade * item.preco_venda;
-    });
+    const totalCentavos = totalCarrinhoCentavos();
+    const recebidoPreenchido = valorRecebidoInput.value.trim() !== '';
+    const valorRecebido = Number(valorRecebidoInput.value);
+    const recebidoValido = recebidoPreenchido && Number.isFinite(valorRecebido) && valorRecebido >= 0;
+    const recebidoCentavos = recebidoValido ? paraCentavos(valorRecebido) : 0;
+    const pagamentoEmDinheiro = formaPagamento === 'Dinheiro';
+    const pagamentoValido = recebidoValido && (pagamentoEmDinheiro
+        ? recebidoCentavos > 0
+        : recebidoCentavos === totalCentavos);
 
-    const valorRecebido = parseFloat(valorRecebidoInput?.value) || 0;
+    if (labelRecebido) {
+        labelRecebido.textContent = pagamentoEmDinheiro ? 'Valor Recebido:' : 'Valor do Pagamento:';
+    }
+    if (trocoContainer) trocoContainer.hidden = !pagamentoEmDinheiro;
 
-    if (valorRecebido > 0) {
-        const troco = valorRecebido - subtotal;
-        if (troco >= 0) {
-            trocoEl.textContent = formatarMoeda(troco);
+    if (pagamentoEmDinheiro && recebidoValido) {
+        const trocoCentavos = recebidoCentavos - totalCentavos;
+        if (trocoCentavos >= 0) {
+            trocoEl.textContent = formatarMoeda(trocoCentavos / 100);
             trocoEl.style.color = '#15803d';
             if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Troco:';
         } else {
-            trocoEl.textContent = `Faltam ${formatarMoeda(Math.abs(troco))}`;
+            trocoEl.textContent = `Faltam ${formatarMoeda(Math.abs(trocoCentavos) / 100)}`;
             trocoEl.style.color = '#dc2626';
             if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Pendente:';
         }
@@ -335,6 +373,10 @@ function calcularTroco() {
         trocoEl.style.color = '#15803d';
         if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Troco:';
     }
+
+    if (btnConfirmar) {
+        btnConfirmar.disabled = carrinho.length === 0 || !pagamentoValido || vendaEmProcessamento;
+    }
 }
 
 // ==========================================================================
@@ -342,29 +384,92 @@ function calcularTroco() {
 // ==========================================================================
 
 async function confirmarVenda() {
+    if (vendaEmProcessamento) return;
     if (carrinho.length === 0) {
-        alert('Adicione pelo menos um produto ao terminal antes de finalizar a venda.');
+        exibirMensagemVenda('Adicione pelo menos um produto ao terminal antes de finalizar a venda.', 'erro');
         return;
     }
 
-    let subtotal = 0;
-    carrinho.forEach(item => {
-        subtotal += item.quantidade * item.preco_venda;
-    });
-
+    const totalCentavos = totalCarrinhoCentavos();
     const formaPagamento = document.getElementById('formaPagamento')?.value || 'Dinheiro';
     const valorRecebidoInput = document.getElementById('valorRecebido');
-    let valorRecebido = parseFloat(valorRecebidoInput?.value) || subtotal;
+    const valorRecebido = Number(valorRecebidoInput?.value);
+    const valorRecebidoCentavos = paraCentavos(valorRecebido);
 
-    // Se for dinheiro e informou valor menor que subtotal
-    if (formaPagamento === 'Dinheiro' && valorRecebidoInput?.value && valorRecebido < subtotal) {
-        alert(`O valor recebido (${formatarMoeda(valorRecebido)}) é menor que o total da venda (${formatarMoeda(subtotal)})!`);
+    if (!valorRecebidoInput?.value.trim() || !Number.isFinite(valorRecebido) || valorRecebido < 0) {
+        exibirMensagemVenda('Informe um valor recebido válido para concluir a venda.', 'erro');
+        valorRecebidoInput?.focus();
+        calcularTroco();
+        return;
+    }
+    if (formaPagamento === 'Dinheiro' && valorRecebidoCentavos < totalCentavos) {
+        if (valorRecebidoCentavos <= 0) {
+            exibirMensagemVenda('Informe um valor em dinheiro maior que zero para dividir o pagamento.', 'erro');
+            valorRecebidoInput.focus();
+            return;
+        }
+        abrirModalPagamentoCombinado(valorRecebidoCentavos, totalCentavos);
+        return;
+    }
+    if (formaPagamento !== 'Dinheiro' && valorRecebidoCentavos !== totalCentavos) {
+        exibirMensagemVenda(`Para esta forma de pagamento, informe exatamente o total da venda (${formatarMoeda(totalCentavos / 100)}).`, 'erro');
         valorRecebidoInput.focus();
+        calcularTroco();
         return;
     }
 
+    await enviarVenda([
+        { forma_pagamento: formaPagamento, valor: valorRecebidoCentavos / 100 }
+    ], formaPagamento, valorRecebidoCentavos / 100);
+}
+
+function abrirModalPagamentoCombinado(valorDinheiroCentavos, totalCentavos) {
+    const modal = document.getElementById('modalPagamentoCombinado');
+    const dinheiroEl = document.getElementById('valorDinheiroCombinado');
+    const saldoEl = document.getElementById('saldoCombinado');
+    if (!modal || !dinheiroEl || !saldoEl) {
+        exibirMensagemVenda('Não foi possível abrir as opções de pagamento combinado.', 'erro');
+        return;
+    }
+
+    dinheiroEl.textContent = formatarMoeda(valorDinheiroCentavos / 100);
+    saldoEl.textContent = formatarMoeda((totalCentavos - valorDinheiroCentavos) / 100);
+    modal.classList.add('active');
+    document.getElementById('formaPagamentoCombinado')?.focus();
+}
+
+function fecharModalPagamentoCombinado() {
+    document.getElementById('modalPagamentoCombinado')?.classList.remove('active');
+}
+
+async function confirmarPagamentoCombinado() {
+    if (vendaEmProcessamento) return;
+    const totalCentavos = totalCarrinhoCentavos();
+    const valorDinheiro = Number(document.getElementById('valorRecebido')?.value);
+    const dinheiroCentavos = paraCentavos(valorDinheiro);
+    const formaRestante = document.getElementById('formaPagamentoCombinado')?.value;
+
+    if (!Number.isFinite(valorDinheiro) || dinheiroCentavos <= 0 || dinheiroCentavos >= totalCentavos) {
+        fecharModalPagamentoCombinado();
+        exibirMensagemVenda('O valor em dinheiro deve ser maior que zero e menor que o total atualizado.', 'erro');
+        calcularTroco();
+        return;
+    }
+
+    const saldoCentavos = totalCentavos - dinheiroCentavos;
+    fecharModalPagamentoCombinado();
+    await enviarVenda([
+        { forma_pagamento: 'Dinheiro', valor: dinheiroCentavos / 100 },
+        { forma_pagamento: formaRestante, valor: saldoCentavos / 100 }
+    ], 'Dinheiro + ' + formaRestante, dinheiroCentavos / 100);
+}
+
+async function enviarVenda(pagamentos, formaPagamentoExibicao, valorRecebido) {
     const usuario = auth.obterUsuario();
     const btnConfirmar = document.getElementById('confirmarVenda');
+    const valorRecebidoInput = document.getElementById('valorRecebido');
+    vendaEmProcessamento = true;
+    limparMensagemVenda();
     if (btnConfirmar) {
         btnConfirmar.disabled = true;
         btnConfirmar.textContent = 'Processando...';
@@ -372,10 +477,11 @@ async function confirmarVenda() {
 
     try {
         const payload = {
-            id_usuario: usuario?.id_usuario || 1,
+            id_usuario: usuario?.id_usuario,
             desconto: 0,
-            forma_pagamento: formaPagamento,
+            forma_pagamento: pagamentos[0].forma_pagamento,
             valor_recebido: valorRecebido,
+            pagamentos,
             observacao: `Venda balcão - Operador: ${usuario?.nome || 'Admin'}`,
             itens: carrinho.map(i => ({
                 id_produto: i.id_produto,
@@ -387,7 +493,8 @@ async function confirmarVenda() {
         const resposta = await api.post('/api/vendas', payload);
 
         // Exibe recibo da venda no modal
-        exibirReciboSucesso(resposta.venda, carrinho, formaPagamento);
+        exibirReciboSucesso(resposta.venda, carrinho, formaPagamentoExibicao);
+        exibirMensagemVenda(`Venda #${resposta.venda.id_venda} concluída com sucesso.`, 'sucesso');
 
         // Limpa carrinho e formulário
         carrinho = [];
@@ -398,12 +505,13 @@ async function confirmarVenda() {
         await carregarProdutos();
 
     } catch (erro) {
-        alert(`Erro ao finalizar venda: ${erro.message}`);
+        exibirMensagemVenda(`Erro ao finalizar venda: ${erro.message}`, 'erro');
     } finally {
+        vendaEmProcessamento = false;
         if (btnConfirmar) {
-            btnConfirmar.disabled = carrinho.length === 0;
             btnConfirmar.textContent = '✓ Confirmar Venda';
         }
+        atualizarTerminal();
     }
 }
 
@@ -420,10 +528,20 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
         itensHtml += `
             <div class="receipt-item-row">
                 <span>${item.quantidade}x ${escapeHtml(item.nome)}</span>
-                <strong>${formatarMoeda(item.quantidade * item.preco_venda)}</strong>
+                <strong>${formatarMoeda(Math.round(paraCentavos(item.preco_venda) * item.quantidade) / 100)}</strong>
             </div>
         `;
     });
+
+    const pagamentosVenda = Array.isArray(venda?.pagamentos) && venda.pagamentos.length > 0
+        ? venda.pagamentos
+        : [{ forma_pagamento: formaPagamento, valor: venda?.valor_total }];
+    const pagamentosHtml = pagamentosVenda.map(pagamento => `
+        <div class="receipt-item-row" style="color: #64748b;">
+            <span>${escapeHtml(pagamento.forma_pagamento)}:</span>
+            <span>${formatarMoeda(pagamento.valor)}</span>
+        </div>
+    `).join('');
 
     reciboConteudo.innerHTML = `
         <div style="text-align: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #cbd5e1;">
@@ -437,11 +555,8 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
             <span>Total:</span>
             <span>${formatarMoeda(venda?.valor_total)}</span>
         </div>
-        <div class="receipt-item-row" style="color: #64748b;">
-            <span>Forma de Pagamento:</span>
-            <span>${escapeHtml(formaPagamento)}</span>
-        </div>
-        ${formaPagamento === 'Dinheiro' && venda?.troco > 0 ? `
+        ${pagamentosHtml}
+        ${venda?.troco > 0 ? `
             <div class="receipt-item-row" style="color: #15803d; font-weight: 600;">
                 <span>Troco:</span>
                 <span>${formatarMoeda(venda.troco)}</span>
@@ -519,7 +634,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 6. Cálculo dinâmico de troco ao digitar valor recebido
     const inputRecebido = document.getElementById('valorRecebido');
     if (inputRecebido) {
-        inputRecebido.oninput = calcularTroco;
+        inputRecebido.oninput = () => {
+            limparMensagemVenda();
+            calcularTroco();
+        };
+        inputRecebido.onkeydown = (evento) => {
+            if (evento.key === 'Enter') {
+                evento.preventDefault();
+                confirmarVenda();
+            }
+        };
+    }
+
+    const selectPagamento = document.getElementById('formaPagamento');
+    if (selectPagamento) {
+        selectPagamento.onchange = () => {
+            limparMensagemVenda();
+            calcularTroco();
+        };
     }
 
     // 7. Confirmação de Venda
@@ -533,4 +665,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnNova = document.getElementById('btnNovaVenda');
     if (btnFechar) btnFechar.onclick = fecharModalRecibo;
     if (btnNova) btnNova.onclick = fecharModalRecibo;
+
+    const btnFecharPagamento = document.getElementById('fecharPagamentoCombinado');
+    const btnCancelarPagamento = document.getElementById('cancelarPagamentoCombinado');
+    const btnConfirmarPagamento = document.getElementById('confirmarPagamentoCombinado');
+    if (btnFecharPagamento) btnFecharPagamento.onclick = fecharModalPagamentoCombinado;
+    if (btnCancelarPagamento) btnCancelarPagamento.onclick = fecharModalPagamentoCombinado;
+    if (btnConfirmarPagamento) btnConfirmarPagamento.onclick = confirmarPagamentoCombinado;
 });

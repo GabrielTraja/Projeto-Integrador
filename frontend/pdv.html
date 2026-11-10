@@ -175,12 +175,11 @@
                                 <option value="Pix">Pix</option>
                                 <option value="Cartão de Débito">Cartão de Débito</option>
                                 <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                <option value="Vale-Alimentação">Vale-Alimentação</option>
                             </select>
                         </div>
 
                         <div class="terminal-payment-field">
-                            <label for="valorRecebido">Valor Recebido:</label>
+                            <label for="valorRecebido" id="valorRecebidoLabel">Valor Recebido:</label>
                             <input
                                 type="number"
                                 id="valorRecebido"
@@ -195,6 +194,8 @@
                         <span>Troco:</span>
                         <strong id="troco">R$ 0,00</strong>
                     </div>
+
+                    <p id="mensagemVenda" class="pdv-venda-message" role="status" aria-live="polite" hidden></p>
 
                     <button
                         type="button"
@@ -227,6 +228,36 @@
                 <button type="button" class="btn-primary" id="btnNovaVenda" style="flex: 1; justify-content: center;">
                     Nova Venda
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPagamentoCombinado" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tituloPagamentoCombinado">
+        <div class="modal-content modal-payment">
+            <div class="modal-header">
+                <h3 id="tituloPagamentoCombinado">Completar pagamento</h3>
+                <button type="button" class="btn-close-modal" id="fecharPagamentoCombinado" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="combined-payment-body">
+                <p>O valor em dinheiro não cobre o total. Escolha como deseja pagar o saldo:</p>
+                <div class="combined-payment-row">
+                    <span>Em dinheiro</span>
+                    <strong id="valorDinheiroCombinado">R$ 0,00</strong>
+                </div>
+                <div class="combined-payment-row">
+                    <span>Saldo restante</span>
+                    <strong id="saldoCombinado">R$ 0,00</strong>
+                </div>
+                <label for="formaPagamentoCombinado">Pagar saldo com:</label>
+                <select id="formaPagamentoCombinado" class="select-payment">
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                </select>
+                <div class="combined-payment-actions">
+                    <button type="button" class="btn-secondary" id="cancelarPagamentoCombinado">Voltar</button>
+                    <button type="button" class="btn-primary" id="confirmarPagamentoCombinado">Concluir venda</button>
+                </div>
             </div>
         </div>
     </div>
