@@ -14,13 +14,14 @@ const usuarioRoutes = require('./src/routes/usuarioRoutes');
 const produtoRoutes = require('./src/routes/produtoRoutes');
 const categoriaRoutes = require('./src/routes/categoriaRoutes');
 const vendaRoutes = require('./src/routes/vendaRoutes');
+const configuracaoEstabelecimentoRoutes = require('./src/routes/configuracaoEstabelecimentoRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '7mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Caminho da pasta frontend
@@ -32,6 +33,10 @@ app.get('/', (req, res) => {
 });
 
 // Arquivos estáticos do frontend (CSS, JS, Imagens, Telas)
+app.use('/uploads', express.static(path.resolve(__dirname, 'uploads'), {
+    fallthrough: false,
+    maxAge: '1d'
+}));
 app.use(express.static(frontendPath));
 
 // Rotas da API REST
@@ -40,6 +45,7 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/produtos', produtoRoutes);
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/vendas', vendaRoutes);
+app.use('/api/configuracoes', configuracaoEstabelecimentoRoutes);
 
 // Health check
 app.get('/api/status', (req, res) => {

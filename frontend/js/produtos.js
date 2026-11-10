@@ -4,6 +4,8 @@
 
 let listaItens = [];
 let categoriasDisponiveis = [];
+let imagemProdutoDataUrl = null;
+let removerImagemProdutoSelecionada = false;
 
 // 1. Carrega dados da API e chama a renderização
 async function carregarDados() {
@@ -111,6 +113,11 @@ async function salvarDados(event) {
         descricao,
         status: 'ATIVO'
     };
+    if (imagemProdutoDataUrl) {
+        payload.foto = imagemProdutoDataUrl;
+    } else if (removerImagemProdutoSelecionada) {
+        payload.foto = null;
+    }
 
     try {
         if (id) {
@@ -158,6 +165,11 @@ async function carregarParaEdicao(id) {
         if (document.getElementById('descricao')) {
             document.getElementById('descricao').value = produto.descricao || '';
         }
+        if (produto.foto) {
+            atualizarPreviaImagem(safeImageUrl(produto.foto));
+            const removerImagem = document.getElementById('removerImagemProduto');
+            if (removerImagem) removerImagem.hidden = false;
+        }
 
         // Altera textos da página para modo Edição
         const titulo = document.querySelector('.welcome-section h1');
@@ -171,6 +183,67 @@ async function carregarParaEdicao(id) {
         alert(`Erro ao carregar dados do produto: ${erro.message}`);
         window.location.href = 'controleEstoque.html';
     }
+}
+
+function atualizarPreviaImagem(src) {
+    const container = document.getElementById('imagemProdutoPreviewContainer');
+    const imagem = document.getElementById('imagemProdutoPreview');
+    if (!container || !imagem) return;
+    imagem.src = src;
+    container.hidden = false;
+}
+
+function configurarCampoImagem() {
+    const input = document.getElementById('imagemProduto');
+    const botaoRemover = document.getElementById('removerImagemProduto');
+    const imagemPreview = document.getElementById('imagemProdutoPreview');
+    const containerPreview = document.getElementById('imagemProdutoPreviewContainer');
+    if (!input || !botaoRemover || !imagemPreview || !containerPreview) return;
+
+    input.onchange = () => {
+        const arquivo = input.files?.[0];
+        if (!arquivo) return;
+
+        const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+        const extensaoPermitida = /\.(jpe?g|png|webp)$/i.test(arquivo.name);
+        if (!tiposPermitidos.includes(arquivo.type) || !extensaoPermitida) {
+            alert('Formato inválido. Selecione uma imagem JPG, JPEG, PNG ou WEBP.');
+            input.value = '';
+            return;
+        }
+        if (arquivo.size > 5 * 1024 * 1024) {
+            alert('A imagem deve ter no máximo 5 MB.');
+            input.value = '';
+            return;
+        }
+
+        const leitor = new FileReader();
+        leitor.onload = () => {
+            if (typeof leitor.result !== 'string') {
+                alert('Não foi possível ler a imagem selecionada.');
+                input.value = '';
+                return;
+            }
+            imagemProdutoDataUrl = leitor.result;
+            removerImagemProdutoSelecionada = false;
+            atualizarPreviaImagem(leitor.result);
+            botaoRemover.hidden = false;
+        };
+        leitor.onerror = () => {
+            alert('Erro ao carregar a imagem selecionada.');
+            input.value = '';
+        };
+        leitor.readAsDataURL(arquivo);
+    };
+
+    botaoRemover.onclick = () => {
+        imagemProdutoDataUrl = null;
+        removerImagemProdutoSelecionada = true;
+        input.value = '';
+        imagemPreview.src = 'icones/produtos.png';
+        containerPreview.hidden = true;
+        botaoRemover.hidden = true;
+    };
 }
 
 // 6. Função deletar(id): Confirma e deleta via API (Lógica adaptada do index.html)
@@ -239,6 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Se estiver na tela de cadastro/edição de produtos
     const formProduto = document.querySelector('.product-form');
     if (formProduto) {
+        configurarCampoImagem();
         await carregarCategoriasSelect();
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('id');

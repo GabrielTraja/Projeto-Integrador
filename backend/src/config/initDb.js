@@ -264,6 +264,44 @@ async function initDatabase() {
         `);
 
         await connection.query(`
+            CREATE TABLE IF NOT EXISTS configuracao_estabelecimento (
+                id_configuracao TINYINT PRIMARY KEY,
+                nome_fantasia VARCHAR(120) NOT NULL DEFAULT '',
+                razao_social VARCHAR(160) NOT NULL DEFAULT '',
+                cnpj VARCHAR(18) NOT NULL DEFAULT '',
+                inscricao_estadual VARCHAR(30) NOT NULL DEFAULT '',
+                telefone VARCHAR(30) NOT NULL DEFAULT '',
+                email VARCHAR(120) NOT NULL DEFAULT '',
+                cep VARCHAR(9) NOT NULL DEFAULT '',
+                endereco VARCHAR(160) NOT NULL DEFAULT '',
+                numero VARCHAR(20) NOT NULL DEFAULT '',
+                complemento VARCHAR(100) NOT NULL DEFAULT '',
+                bairro VARCHAR(100) NOT NULL DEFAULT '',
+                cidade VARCHAR(100) NOT NULL DEFAULT '',
+                estado CHAR(2) NOT NULL DEFAULT '',
+                logotipo VARCHAR(255) NULL,
+                rede_social VARCHAR(120) NOT NULL DEFAULT '',
+                mensagem_agradecimento VARCHAR(255) NOT NULL DEFAULT '',
+                largura_papel TINYINT NOT NULL DEFAULT 80,
+                exibir_logotipo TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_cnpj TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_endereco TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_telefone TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_operador TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_numero_venda TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_data_horario TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_forma_pagamento TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_valor_recebido TINYINT(1) NOT NULL DEFAULT 1,
+                exibir_troco TINYINT(1) NOT NULL DEFAULT 1,
+                mensagem_rodape VARCHAR(255) NOT NULL DEFAULT '',
+                quantidade_vias TINYINT UNSIGNED NOT NULL DEFAULT 1,
+                CONSTRAINT chk_configuracao_estabelecimento_id CHECK (id_configuracao = 1),
+                CONSTRAINT chk_configuracao_largura CHECK (largura_papel IN (58, 80)),
+                CONSTRAINT chk_configuracao_vias CHECK (quantidade_vias BETWEEN 1 AND 5)
+            );
+        `);
+
+        await connection.query(`
             CREATE TABLE IF NOT EXISTS venda (
                 id_venda INT AUTO_INCREMENT PRIMARY KEY,
                 data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -308,6 +346,89 @@ async function initDatabase() {
         `);
 
         await connection.query(`
+            CREATE TABLE IF NOT EXISTS movimentacao_caixa (
+                id_movimentacao_caixa INT AUTO_INCREMENT PRIMARY KEY,
+                id_caixa INT NOT NULL,
+                id_venda INT NOT NULL,
+                id_usuario INT NOT NULL,
+                id_forma_pagamento INT NOT NULL,
+                tipo ENUM('ENTRADA', 'SAIDA') NOT NULL,
+                valor DECIMAL(12,2) NOT NULL,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                descricao VARCHAR(255),
+                CONSTRAINT fk_movimentacao_caixa_caixa FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa),
+                CONSTRAINT fk_movimentacao_caixa_venda FOREIGN KEY (id_venda) REFERENCES venda(id_venda),
+                CONSTRAINT fk_movimentacao_caixa_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                CONSTRAINT fk_movimentacao_caixa_forma FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento),
+                CONSTRAINT chk_movimentacao_caixa_valor CHECK (valor > 0),
+                CONSTRAINT uq_movimentacao_caixa_venda_forma UNIQUE (id_venda, id_forma_pagamento)
+            );
+        `);
+
+        const [movimentacaoCaixaIndices] = await connection.query(`
+            SELECT index_name AS ix_name, COUNT(*) AS colunas, MAX(column_name) AS coluna
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+              AND table_name = 'movimentacao_caixa'
+              AND non_unique = 0
+              AND index_name <> 'PRIMARY'
+            GROUP BY index_name
+        `);
+        const indicesVendaUnicos = movimentacaoCaixaIndices.filter(
+            indice => Number(indice.colunas) === 1 && indice.coluna === 'id_venda'
+        );
+        if (indicesVendaUnicos.length > 0) {
+            const [foreignKeysVenda] = await connection.query(`
+                SELECT DISTINCT constraint_name AS fk_name
+                FROM information_schema.key_column_usage
+                WHERE table_schema = DATABASE()
+                  AND table_name = 'movimentacao_caixa'
+                  AND column_name = 'id_venda'
+                  AND referenced_table_name = 'venda'
+                  AND referenced_column_name = 'id_venda'
+            `);
+            for (const foreignKey of foreignKeysVenda) {
+                await connection.query(
+                    `ALTER TABLE movimentacao_caixa DROP FOREIGN KEY \`${foreignKey.fk_name}\``
+                );
+            }
+            for (const indice of indicesVendaUnicos) {
+                await connection.query(`ALTER TABLE movimentacao_caixa DROP INDEX \`${indice.ix_name}\``);
+            }
+        }
+        const [movimentacaoCaixaUnique] = await connection.query(`
+            SELECT index_name
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+              AND table_name = 'movimentacao_caixa'
+              AND non_unique = 0
+            GROUP BY index_name
+            HAVING GROUP_CONCAT(column_name ORDER BY seq_in_index) = 'id_venda,id_forma_pagamento'
+        `);
+        if (movimentacaoCaixaUnique.length === 0) {
+            await connection.query(`
+                ALTER TABLE movimentacao_caixa
+                ADD CONSTRAINT uq_movimentacao_caixa_venda_forma UNIQUE (id_venda, id_forma_pagamento)
+            `);
+        }
+        const [foreignKeyVendaAtual] = await connection.query(`
+            SELECT COUNT(*) AS total
+            FROM information_schema.key_column_usage
+            WHERE table_schema = DATABASE()
+              AND table_name = 'movimentacao_caixa'
+              AND column_name = 'id_venda'
+              AND referenced_table_name = 'venda'
+              AND referenced_column_name = 'id_venda'
+        `);
+        if (foreignKeyVendaAtual[0].total === 0) {
+            await connection.query(`
+                ALTER TABLE movimentacao_caixa
+                ADD CONSTRAINT fk_movimentacao_caixa_venda
+                FOREIGN KEY (id_venda) REFERENCES venda(id_venda)
+            `);
+        }
+
+        await connection.query(`
             CREATE TABLE IF NOT EXISTS movimentacao_estoque (
                 id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
                 id_produto INT NOT NULL,
@@ -347,6 +468,8 @@ async function initDatabase() {
             ['item_venda', 'idx_item_venda_produto', 'id_produto'],
             ['movimentacao_estoque', 'idx_movimentacao_data', 'data_hora'],
             ['movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto'],
+            ['movimentacao_caixa', 'idx_movimentacao_caixa_data', 'data_hora'],
+            ['movimentacao_caixa', 'idx_movimentacao_caixa_id_caixa', 'id_caixa'],
             ['produto', 'idx_produto_nome', 'nome']
         ];
         for (const [table, index, column] of indices) {
@@ -361,7 +484,7 @@ async function initDatabase() {
         }
 
         // Seeds: Formas de Pagamento
-        const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito', 'Vale-Alimentação', 'Vale-Refeição'];
+        const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito'];
         for (const forma of formasPagamento) {
             await connection.query(`INSERT IGNORE INTO forma_pagamento (descricao) VALUES (?)`, [forma]);
         }

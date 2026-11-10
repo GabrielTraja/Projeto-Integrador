@@ -1,12 +1,24 @@
 const db = require('../config/database');
 
+const formasPagamentoPermitidas = [
+    'Dinheiro',
+    'Pix',
+    'Cartão de Débito',
+    'Cartão de Crédito'
+];
+
+function normalizarFormaPagamento(valor) {
+    return String(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 const VendaModel = {
     async criarVenda(dadosVenda) {
         const {
             id_usuario = 1,
             desconto = 0,
             forma_pagamento = 'Dinheiro',
-            valor_recebido = 0,
+            valor_recebido,
+            pagamentos: pagamentosInformados,
             observacao = 'Venda PDV Frente de Caixa',
             itens = []
         } = dadosVenda;
@@ -18,12 +30,39 @@ const VendaModel = {
 
         const descontoInformado = Number(desconto);
         const recebidoInformado = Number(valor_recebido);
+        const entradaPagamentos = pagamentosInformados === undefined
+            ? [{ forma_pagamento, valor: valor_recebido }]
+            : pagamentosInformados;
+        if (!Array.isArray(entradaPagamentos) || entradaPagamentos.length < 1) {
+            throw falhaValidacao('Informe ao menos uma forma de pagamento.');
+        }
         if (!Number.isFinite(descontoInformado) || descontoInformado < 0) {
             throw falhaValidacao('O desconto deve ser um valor válido e não negativo.');
         }
-        if (!Number.isFinite(recebidoInformado) || recebidoInformado < 0) {
+        if (pagamentosInformados === undefined && (!Number.isFinite(recebidoInformado) || recebidoInformado < 0)) {
             throw falhaValidacao('O valor recebido deve ser válido e não negativo.');
         }
+
+        const pagamentosValidados = entradaPagamentos.map(pagamento => {
+            const formaSelecionada = formasPagamentoPermitidas.find(
+                forma => normalizarFormaPagamento(forma) === normalizarFormaPagamento(pagamento?.forma_pagamento || '')
+            );
+            const valorInformado = Number(pagamento?.valor);
+            if (!formaSelecionada) {
+                throw falhaValidacao('Forma de pagamento inválida. Utilize Dinheiro, Pix, Cartão de Débito ou Cartão de Crédito.');
+            }
+            if (!Number.isFinite(valorInformado) || valorInformado <= 0) {
+                throw falhaValidacao('Cada valor de pagamento deve ser válido e maior que zero.');
+            }
+            const valorCentavos = Math.round(valorInformado * 100);
+            if (valorCentavos <= 0) {
+                throw falhaValidacao('Cada valor de pagamento deve ser de pelo menos R$ 0,01.');
+            }
+            return {
+                forma_pagamento: formaSelecionada,
+                valor_centavos: valorCentavos
+            };
+        });
 
         const connection = await db.getConnection();
 
@@ -82,29 +121,60 @@ const VendaModel = {
                     throw falhaValidacao(`Estoque insuficiente para o produto "${produto.nome}". Disponível: ${produto.estoque_atual}`);
                 }
 
-                const preco_unitario = Number(produto.preco_venda);
-                const subtotal_item = quantidade * preco_unitario;
-                if (!Number.isFinite(preco_unitario) || preco_unitario < 0 || !Number.isFinite(subtotal_item)) {
+                const precoCentavos = Math.round(Number(produto.preco_venda) * 100);
+                const subtotalItemCentavos = Math.round(quantidade * precoCentavos);
+                if (!Number.isFinite(precoCentavos) || precoCentavos < 0 || !Number.isFinite(subtotalItemCentavos)) {
                     throw falhaValidacao(`Preço inválido para o produto "${produto.nome}".`);
                 }
 
-                valor_subtotal += subtotal_item;
+                valor_subtotal += subtotalItemCentavos / 100;
                 itensValidados.push({
                     id_produto: produto.id_produto,
                     nome: produto.nome,
                     quantidade,
-                    preco_unitario,
-                    subtotal: subtotal_item
+                    preco_unitario: precoCentavos / 100,
+                    subtotal: subtotalItemCentavos / 100
                 });
             }
 
-            const valor_desconto = descontoInformado;
-            if (valor_subtotal <= 0 || valor_desconto >= valor_subtotal) {
+            const valorSubtotalCentavos = Math.round(valor_subtotal * 100);
+            const valorDescontoCentavos = Math.round(descontoInformado * 100);
+            if (valorSubtotalCentavos <= 0 || valorDescontoCentavos >= valorSubtotalCentavos) {
                 throw falhaValidacao('O total da venda deve ser maior que zero e o desconto menor que o subtotal.');
             }
-            const valor_total = valor_subtotal - valor_desconto;
-            if (recebidoInformado < valor_total) {
-                throw falhaValidacao('O valor recebido não pode ser menor que o total da venda.');
+            valor_subtotal = valorSubtotalCentavos / 100;
+            const valor_desconto = valorDescontoCentavos / 100;
+            const valor_total = (valorSubtotalCentavos - valorDescontoCentavos) / 100;
+            const totalCentavos = valorSubtotalCentavos - valorDescontoCentavos;
+            const valorPagamentosCentavos = pagamentosValidados.reduce(
+                (soma, pagamento) => soma + pagamento.valor_centavos,
+                0
+            );
+            if (pagamentosValidados.length === 1) {
+                const pagamento = pagamentosValidados[0];
+                if (pagamento.forma_pagamento === 'Dinheiro' && pagamento.valor_centavos < totalCentavos) {
+                    throw falhaValidacao('O valor recebido não pode ser menor que o total da venda em pagamentos somente em dinheiro.');
+                }
+                if (pagamento.forma_pagamento !== 'Dinheiro' && pagamento.valor_centavos !== totalCentavos) {
+                    throw falhaValidacao('Para pagamentos por Pix ou cartão, o valor informado deve ser igual ao total da venda.');
+                }
+            } else if (valorPagamentosCentavos !== totalCentavos) {
+                throw falhaValidacao('A soma dos pagamentos deve ser exatamente igual ao total da venda.');
+            }
+
+            for (const pagamento of pagamentosValidados) {
+                const [formas] = await connection.query(`
+                    SELECT id_forma_pagamento FROM forma_pagamento
+                    WHERE LOWER(descricao) = LOWER(?) AND status = 'ATIVA' LIMIT 1
+                `, [pagamento.forma_pagamento]);
+                if (formas.length === 0) {
+                    throw falhaValidacao('Forma de pagamento inválida ou inativa.');
+                }
+                pagamento.id_forma_pagamento = formas[0].id_forma_pagamento;
+                pagamento.valor_registrado_centavos = pagamentosValidados.length === 1 &&
+                    pagamento.forma_pagamento === 'Dinheiro'
+                    ? totalCentavos
+                    : pagamento.valor_centavos;
             }
 
             // 3. Insere a Venda
@@ -139,21 +209,40 @@ const VendaModel = {
                 `, [item.id_produto, id_usuario, id_venda, item.quantidade, `Venda PDV Cupom #${id_venda}`]);
             }
 
-            // 5. Registra o pagamento (se forma_pagamento informada)
-            const [formas] = await connection.query(`
-                SELECT id_forma_pagamento FROM forma_pagamento
-                WHERE LOWER(descricao) = LOWER(?) AND status = 'ATIVA' LIMIT 1
-            `, [forma_pagamento]);
+            const movimentacoesPorForma = new Map();
+            for (const pagamento of pagamentosValidados) {
+                const valorPagamento = pagamento.valor_registrado_centavos / 100;
+                await connection.query(`
+                    INSERT INTO pagamento (id_venda, id_forma_pagamento, valor, status)
+                    VALUES (?, ?, ?, 'APROVADO')
+                `, [id_venda, pagamento.id_forma_pagamento, valorPagamento]);
 
-            if (formas.length === 0) {
-                throw falhaValidacao('Forma de pagamento inválida ou inativa.');
+                const movimentoExistente = movimentacoesPorForma.get(pagamento.id_forma_pagamento);
+                if (movimentoExistente) {
+                    movimentoExistente.valor_centavos += pagamento.valor_registrado_centavos;
+                } else {
+                    movimentacoesPorForma.set(pagamento.id_forma_pagamento, {
+                        forma_pagamento: pagamento.forma_pagamento,
+                        id_forma_pagamento: pagamento.id_forma_pagamento,
+                        valor_centavos: pagamento.valor_registrado_centavos
+                    });
+                }
             }
-            const id_forma = formas[0].id_forma_pagamento;
 
-            await connection.query(`
-                INSERT INTO pagamento (id_venda, id_forma_pagamento, valor, status)
-                VALUES (?, ?, ?, 'APROVADO')
-            `, [id_venda, id_forma, valor_total]);
+            for (const movimento of movimentacoesPorForma.values()) {
+                await connection.query(`
+                    INSERT INTO movimentacao_caixa
+                        (id_caixa, id_venda, id_usuario, id_forma_pagamento, tipo, valor, descricao)
+                    VALUES (?, ?, ?, ?, 'ENTRADA', ?, ?)
+                `, [
+                    id_caixa,
+                    id_venda,
+                    id_usuario,
+                    movimento.id_forma_pagamento,
+                    movimento.valor_centavos / 100,
+                    `Venda PDV #${id_venda} - ${movimento.forma_pagamento}`
+                ]);
+            }
 
             await connection.commit();
 
@@ -162,8 +251,16 @@ const VendaModel = {
                 valor_subtotal,
                 desconto: valor_desconto,
                 valor_total,
-                valor_recebido: recebidoInformado,
-                troco: Math.max(0, recebidoInformado - valor_total),
+                valor_recebido: pagamentosValidados.length === 1 && pagamentosValidados[0].forma_pagamento === 'Dinheiro'
+                    ? pagamentosValidados[0].valor_centavos / 100
+                    : valorPagamentosCentavos / 100,
+                troco: pagamentosValidados.length === 1 && pagamentosValidados[0].forma_pagamento === 'Dinheiro'
+                    ? Math.max(0, pagamentosValidados[0].valor_centavos - totalCentavos) / 100
+                    : 0,
+                pagamentos: pagamentosValidados.map(pagamento => ({
+                    forma_pagamento: pagamento.forma_pagamento,
+                    valor: pagamento.valor_registrado_centavos / 100
+                })),
                 quantidade_itens: itensValidados.length,
                 data_hora: new Date().toISOString()
             };

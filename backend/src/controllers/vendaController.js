@@ -3,7 +3,7 @@ const VendaModel = require('../models/vendaModel');
 const vendaController = {
     async criar(req, res) {
         try {
-            const { id_usuario, desconto, forma_pagamento, valor_recebido, observacao, itens } = req.body;
+            const { id_usuario, desconto, forma_pagamento, valor_recebido, pagamentos, observacao, itens } = req.body;
 
             if (!itens || !Array.isArray(itens) || itens.length === 0) {
                 return res.status(400).json({ erro: 'O carrinho está vazio. Adicione itens antes de finalizar.' });
@@ -14,6 +14,7 @@ const vendaController = {
                 desconto,
                 forma_pagamento,
                 valor_recebido,
+                pagamentos,
                 observacao,
                 itens
             });

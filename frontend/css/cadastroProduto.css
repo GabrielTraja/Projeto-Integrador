@@ -75,6 +75,44 @@
   padding: 12px;
 }
 
+.image-help {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.product-image-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+}
+
+.product-image-preview[hidden],
+.btn-remove-image[hidden] {
+  display: none;
+}
+
+.product-image-preview img {
+  width: 120px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+}
+
+.btn-remove-image {
+  padding: 8px 12px;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  color: #b91c1c;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Área e Botão de Enviar */
 .form-actions {
   margin-top: 10px;

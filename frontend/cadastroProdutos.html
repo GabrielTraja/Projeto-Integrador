@@ -31,7 +31,7 @@
             <li><a href="cadastroProdutos.html" class="active"><img src="icones/produtos.png" alt="Produtos"><span>Produtos</span></a></li>
             <li><a href="controleUsuarios.html"><img src="icones/usuarios.png" alt="Usuários"><span>Usuários</span></a></li>
             <li><a href="#"><img src="icones/relatorio.png" alt="Relatórios"><span>Relatórios</span></a></li>
-            <li><a href="#"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
+            <li><a href="telaControle.html#configuracoes"><img src="icones/configuracao.png" alt="Configurações"><span>Configurações</span></a></li>
         </ul>
     </nav>
 
@@ -92,6 +92,22 @@
                 <div class="form-group">
                     <label for="estoqueMinimo">Estoque Mínimo:</label>
                     <input type="number" id="estoqueMinimo" name="estoqueMinimo" min="0" placeholder="0" class="inputProduto">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="imagemProduto">Imagem do Produto:</label>
+                    <input
+                        type="file"
+                        id="imagemProduto"
+                        name="imagemProduto"
+                        class="inputProduto file-input"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    >
+                    <small class="image-help">JPG, JPEG, PNG ou WEBP. Tamanho máximo: 5 MB.</small>
+                    <div class="product-image-preview" id="imagemProdutoPreviewContainer" hidden>
+                        <img id="imagemProdutoPreview" src="icones/produtos.png" alt="Pré-visualização da imagem do produto">
+                        <button type="button" id="removerImagemProduto" class="btn-remove-image" hidden>Remover imagem</button>
+                    </div>
                 </div>
 
                 <div class="form-group full-width">
