@@ -67,50 +67,75 @@
   min-height: 80px;
 }
 
-/* Customização leve para o input de arquivo (foto) */
+/* Customização para o input de arquivo (foto) lado a lado */
+.form-group-image {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .file-input {
-  background-color: transparent;
+  background-color: var(--bg-main);
   border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  padding: 12px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.file-input:hover {
+  border-color: var(--accent);
+  background-color: var(--bg-card);
 }
 
 .image-help {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  margin-top: -2px;
 }
 
 .product-image-preview {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px;
+  gap: 12px;
+  padding: 8px 12px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
   background: var(--bg-main);
+  margin-top: 4px;
 }
 
 .product-image-preview[hidden],
 .btn-remove-image[hidden] {
-  display: none;
+  display: none !important;
 }
 
 .product-image-preview img {
-  width: 120px;
-  height: 100px;
-  object-fit: contain;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   background: #ffffff;
+  flex-shrink: 0;
 }
 
 .btn-remove-image {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid #fecaca;
   border-radius: var(--radius-sm);
-  color: #b91c1c;
+  color: var(--danger);
   background: #fff;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-remove-image:hover {
+  background-color: #fee2e2;
 }
 
 /* Área e Botão de Enviar */

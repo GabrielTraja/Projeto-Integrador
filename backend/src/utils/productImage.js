@@ -2,7 +2,10 @@ const fs = require('fs/promises');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
-const imageDirectory = path.resolve(__dirname, '../../uploads');
+const baseUploadsDirectory = path.resolve(__dirname, '../../uploads');
+const produtosDirectory = path.resolve(baseUploadsDirectory, 'produtos');
+const usuariosDirectory = path.resolve(baseUploadsDirectory, 'usuarios');
+
 const maxImageBytes = 5 * 1024 * 1024;
 const formats = {
     'image/jpeg': {
@@ -33,9 +36,9 @@ function erroImagem(mensagem, status = 400) {
     return Object.assign(new Error(mensagem), { status });
 }
 
-async function salvarImagemProduto(dataUrl) {
+async function processarESalvarImagem(dataUrl, subdiretorio = 'produtos', mensagemInvalida = 'A imagem é inválida.') {
     if (typeof dataUrl !== 'string') {
-        throw erroImagem('A imagem do produto é inválida.');
+        throw erroImagem(mensagemInvalida);
     }
 
     const correspondencia = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/);
@@ -53,22 +56,58 @@ async function salvarImagemProduto(dataUrl) {
         throw erroImagem('O conteúdo do arquivo não corresponde a uma imagem JPG, PNG ou WEBP válida.');
     }
 
-    await fs.mkdir(imageDirectory, { recursive: true });
+    const pastaDestino = path.resolve(baseUploadsDirectory, subdiretorio);
+    await fs.mkdir(pastaDestino, { recursive: true });
     const nomeArquivo = `${randomUUID()}${formats[mimeType].extension}`;
-    await fs.writeFile(path.join(imageDirectory, nomeArquivo), buffer, { flag: 'wx' });
-    return `/uploads/${nomeArquivo}`;
+    await fs.writeFile(path.join(pastaDestino, nomeArquivo), buffer, { flag: 'wx' });
+    return `/uploads/${subdiretorio}/${nomeArquivo}`;
 }
 
-async function removerImagemProduto(foto) {
-    if (typeof foto !== 'string' || !foto.startsWith('/uploads/')) return;
-    const nomeArquivo = foto.slice('/uploads/'.length);
-    if (!/^[\da-f-]+\.(?:jpg|png|webp)$/i.test(nomeArquivo)) return;
+async function salvarImagemProduto(dataUrl) {
+    return processarESalvarImagem(dataUrl, 'produtos', 'A imagem do produto é inválida.');
+}
+
+async function salvarImagemUsuario(dataUrl) {
+    return processarESalvarImagem(dataUrl, 'usuarios', 'A foto do usuário é inválida.');
+}
+
+async function removerArquivoImagem(caminho, subdiretorio = null) {
+    if (typeof caminho !== 'string' || !caminho.startsWith('/uploads/')) return;
+
+    let subcaminho = caminho.slice('/uploads/'.length);
+
+    // Se tiver produtos/ ou usuarios/ ou for arquivo direto
+    let pasta = baseUploadsDirectory;
+    if (subcaminho.startsWith('produtos/')) {
+        pasta = produtosDirectory;
+        subcaminho = subcaminho.slice('produtos/'.length);
+    } else if (subcaminho.startsWith('usuarios/')) {
+        pasta = usuariosDirectory;
+        subcaminho = subcaminho.slice('usuarios/'.length);
+    } else if (subdiretorio) {
+        pasta = path.resolve(baseUploadsDirectory, subdiretorio);
+    }
+
+    if (!/^[\da-f-]+\.(?:jpg|png|webp)$/i.test(subcaminho)) return;
 
     try {
-        await fs.unlink(path.join(imageDirectory, nomeArquivo));
+        await fs.unlink(path.join(pasta, subcaminho));
     } catch (error) {
         if (error.code !== 'ENOENT') throw error;
     }
 }
 
-module.exports = { salvarImagemProduto, removerImagemProduto };
+async function removerImagemProduto(foto) {
+    await removerArquivoImagem(foto, 'produtos');
+}
+
+async function removerImagemUsuario(foto) {
+    await removerArquivoImagem(foto, 'usuarios');
+}
+
+module.exports = {
+    salvarImagemProduto,
+    salvarImagemUsuario,
+    removerImagemProduto,
+    removerImagemUsuario
+};

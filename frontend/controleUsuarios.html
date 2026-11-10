@@ -11,8 +11,13 @@
     
     <!-- Cabeçalho Superior -->
     <header class="top-header">
-        <div class="company-name">
-            <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Seu negócio sempre no controle">
+        <div class="header-left">
+            <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" aria-label="Recolher ou expandir menu" title="Recolher/Expandir menu lateral">
+                <span class="toggle-icon">☰</span>
+            </button>
+            <div class="company-name">
+                <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Cafeteria & Gestão">
+            </div>
         </div>
         
         <div class="user-profile">
@@ -46,7 +51,7 @@
         <div class="filter-container">
             <form class="search-form" onsubmit="event.preventDefault(); carregarDados();">
                 <div class="form-group search-input-group">
-                    <input type="text" id="buscarUsuario" placeholder="Buscar por nome, login ou e-mail..." class="input-search">
+                    <input type="text" id="buscarUsuario" placeholder="Buscar por barista, atendente, gerente ou e-mail..." class="input-search">
                 </div>
 
                 <div class="form-group">

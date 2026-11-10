@@ -339,15 +339,15 @@ INSERT INTO tipo_usuario (id_tipo_usuario, nome, descricao) VALUES
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 
 -- =====================================================
--- 14. DADOS INICIAIS: CATEGORIAS DE PRODUTOS
+-- 14. DADOS INICIAIS: CATEGORIAS DE PRODUTOS (CAFETERIA)
 -- =====================================================
 
 INSERT INTO categoria (id_categoria, nome, descricao) VALUES
-(1, 'Vestuário', 'Roupas e peças de vestuário'),
-(2, 'Calçados', 'Calçados em geral'),
-(3, 'Acessórios', 'Bolsas, cintos e acessórios'),
-(4, 'Alimentos e Bebidas', 'Alimentos e bebidas'),
-(5, 'Geral', 'Produtos e utilidades gerais')
+(1, 'Cafés Especiais', 'Espressos, Cappuccinos, Lattes e cafés filtrados artesanais'),
+(2, 'Bebidas Geladas', 'Iced coffees, Cold brews, Frappes e Chás'),
+(3, 'Salgados e Lanches', 'Pães de queijo, Croissants, Quiches e Tostex'),
+(4, 'Doces e Sobremesas', 'Bolos artesanais, Tortas, Cookies e Brownies'),
+(5, 'Grãos e Acessórios', 'Cafés especiais em grãos, Canecas e Prensa francesa')
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 
 -- =====================================================
@@ -362,10 +362,12 @@ INSERT INTO forma_pagamento (descricao) VALUES
 ON DUPLICATE KEY UPDATE descricao = VALUES(descricao);
 
 -- =====================================================
--- 16. USUARIO ADMINISTRADOR
+-- 16. USUARIO ADMINISTRADOR PADRAO
 -- =====================================================
--- O administrador é provisionado por initDb.js com ADMIN_INITIAL_PASSWORD.
--- Não insira credenciais padrão neste script.
+
+INSERT INTO usuario (id_usuario, nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
+VALUES (1, 'Administrador da Cafeteria', '000.000.000-00', 'admin', 'admin@cafeteria.com', '(11) 99999-9999', 'admin123', 'ATIVO', 1)
+ON DUPLICATE KEY UPDATE nome = VALUES(nome), status = 'ATIVO';
 
 -- =====================================================
 -- 17. INDICES PARA CONSULTAS FREQUENTES

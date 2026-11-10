@@ -16,7 +16,8 @@
     min-height: calc(100vh - 60px);
     padding: 24px 30px;
     box-sizing: border-box;
-    background-color: #f4f6f9;
+    background-color: var(--bg-main);
+    transition: margin-left 0.25s ease, width 0.25s ease;
 }
 
 .pdv-content *,
@@ -901,21 +902,29 @@
 }
 
 .pdv-catalog .btn-search,
-.barcode-input-group button,
-.btn-adicionar,
-.btn-finalizar {
+.barcode-input-group button {
     background-color: var(--primary);
 }
 
 .pdv-catalog .btn-search:hover,
-.barcode-input-group button:hover,
-.btn-adicionar:hover,
-.btn-finalizar:hover:not(:disabled) {
+.barcode-input-group button:hover {
     background-color: var(--primary-hover);
+}
+
+.btn-adicionar,
+.btn-finalizar {
+    background-color: var(--accent);
+    color: #ffffff;
+}
+
+.btn-adicionar:hover:not(:disabled),
+.btn-finalizar:hover:not(:disabled) {
+    background-color: var(--accent-hover);
 }
 
 .stock-card:hover {
     border-color: var(--accent);
+    box-shadow: 0 6px 18px rgba(74, 44, 29, 0.12);
 }
 
 .stock-card-header,

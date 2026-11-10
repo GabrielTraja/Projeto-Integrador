@@ -1,39 +1,49 @@
 /* ==========================================================================
-   CSS GLOBAL - PDV (PONTO DE VENDA)
+   CSS GLOBAL - PDV & GESTÃO (CAFETERIA)
    Centraliza reset, variáveis, cabeçalho, barra lateral, tabelas e botões
    ========================================================================== */
 
 :root {
-  --primary: #722f37;
-  --primary-hover: #5d252c;
-  --secondary: #4a3333;
-  --accent: #c6a15b;
-  --accent-hover: #a8843f;
-  --success: #16a34a;
-  --success-hover: #15803d;
-  --danger: #ef4444;
-  --danger-hover: #dc2626;
-  --warning: #f59e0b;
+  /* Tons terrosos / Café */
+  --primary: #4a2c1d;         /* Café torrado intenso / espresso */
+  --primary-hover: #361f14;   /* Café torrado escuro */
+  --primary-light: #5f3825;   /* Café com caramelo */
+  --secondary: #3d322a;       /* Grafite café */
   
-  --bg-main: #faf6ef;
-  --bg-card: #fffdf9;
-  --sidebar-bg: #f0e7d9;
-  --sidebar-hover: #e7d5b7;
+  /* Verde Sálvia & Destaques Comerciais */
+  --accent: #52796f;          /* Verde sálvia aconchegante */
+  --accent-hover: #3e5e56;    /* Verde sálvia escuro */
+  --success: #436b58;         /* Verde sálvia botânico para botões de venda/sucesso */
+  --success-hover: #335344;
   
-  --border: #d9cdbd;
-  --border-light: #e9dfd2;
+  /* Alertas e Ações */
+  --danger: #b83a2d;          /* Vermelho cerâmico */
+  --danger-hover: #9c2e22;
+  --warning: #c87a29;         /* Âmbar / caramelo torrado */
   
-  --text-main: #292929;
-  --text-muted: #6d5f57;
-  --text-light: #faf6ef;
+  /* Bege / Creme */
+  --bg-main: #f7f3ec;         /* Fundo creme suave aconchegante */
+  --bg-card: #ffffff;         /* Superfície limpa de cartões */
+  --bg-card-alt: #fbf8f4;     /* Creme muito claro */
+  --sidebar-bg: #ece2d3;      /* Bege aconchegante de cafeteria */
+  --sidebar-hover: #dfd2be;   /* Bege toffee */
   
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Bordas Terrosas Suaves */
+  --border: #d8ccbb;
+  --border-light: #e8ded0;
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  /* Tipografia e Contrastes */
+  --text-main: #26211d;       /* Grafite terroso profundo */
+  --text-muted: #72655b;      /* Marrom acinzentado */
+  --text-light: #fbf8f4;      /* Creme claro sobre café */
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  
+  --shadow-sm: 0 1px 3px rgba(42, 27, 18, 0.06);
+  --shadow-md: 0 4px 10px -1px rgba(42, 27, 18, 0.08);
+  --shadow-lg: 0 12px 20px -3px rgba(42, 27, 18, 0.12);
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -66,12 +76,43 @@ body.layout-dashboard {
   width: 100%;
   height: 60px;
   background-color: var(--primary);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(42, 27, 18, 0.15);
   padding: 0 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Botão Toggle da Sidebar */
+.btn-sidebar-toggle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  color: var(--text-light);
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.btn-sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-sidebar-toggle:active {
+  transform: scale(0.96);
 }
 
 .company-name {
@@ -82,8 +123,8 @@ body.layout-dashboard {
 
 .company-logo {
   display: block;
-  width: 240px;
-  height: 50px;
+  width: 220px;
+  height: 48px;
   object-fit: cover;
   object-position: center;
   border-radius: var(--radius-sm);
@@ -142,6 +183,7 @@ body.layout-dashboard {
   flex-direction: column;
   padding: 20px 0;
   z-index: 99;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menu-list {
@@ -165,6 +207,8 @@ body.layout-dashboard {
   font-weight: 600;
   font-size: 0.95rem;
   transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .menu-list li a img,
@@ -173,12 +217,43 @@ body.layout-dashboard {
   height: 20px;
   object-fit: contain;
   margin-right: 14px;
+  flex-shrink: 0;
 }
 
 .menu-list li:hover a,
 .menu-list li a.active {
   background-color: var(--sidebar-hover);
   color: var(--primary);
+}
+
+/* ==========================================================================
+   ESTADO RECOLHIDO DO MENU LATERAL (SIDEBAR COLLAPSED)
+   ========================================================================== */
+body.sidebar-collapsed .sidebar {
+  width: 72px;
+}
+
+body.sidebar-collapsed .sidebar .menu-list li a {
+  padding: 14px 0;
+  justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar .menu-list li a img {
+  margin-right: 0;
+}
+
+body.sidebar-collapsed .sidebar .menu-list li a span {
+  display: none;
+}
+
+body.sidebar-collapsed .content {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}
+
+body.sidebar-collapsed .pdv-content {
+  margin-left: 72px;
+  width: calc(100% - 72px);
 }
 
 /* ==========================================================================
@@ -190,6 +265,7 @@ body.layout-dashboard {
   padding: 30px 40px;
   width: calc(100% - 250px);
   min-height: calc(100vh - 60px);
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .welcome-section {
@@ -255,7 +331,7 @@ body.layout-dashboard {
 .select-category:focus,
 .form-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.22);
+  box-shadow: 0 0 0 3px rgba(82, 121, 111, 0.2);
 }
 
 .btn-search {
@@ -278,7 +354,7 @@ body.layout-dashboard {
 .btn-add-product,
 .btn-primary {
   padding: 10px 18px;
-  background-color: var(--primary);
+  background-color: var(--success);
   color: #ffffff;
   text-decoration: none;
   border-radius: var(--radius-sm);
@@ -295,7 +371,7 @@ body.layout-dashboard {
 
 .btn-add-product:hover,
 .btn-primary:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--success-hover);
 }
 
 /* ==========================================================================
@@ -317,7 +393,7 @@ body.layout-dashboard {
 }
 
 .stock-table thead {
-  background-color: #f8fafc;
+  background-color: var(--bg-card-alt);
   border-bottom: 2px solid var(--border-light);
 }
 
@@ -336,13 +412,13 @@ body.layout-dashboard {
 }
 
 .stock-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-card-alt);
 }
 
 .stock-table td {
   padding: 12px 16px;
   vertical-align: middle;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .product-name {
@@ -356,12 +432,12 @@ body.layout-dashboard {
 }
 
 .product-img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background-color: #f1f5f9;
+  background-color: var(--bg-card-alt);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -373,8 +449,8 @@ body.layout-dashboard {
   object-fit: cover;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background-color: #e0e7ff;
-  color: #3730a3;
+  background-color: var(--sidebar-bg);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,8 +469,8 @@ body.layout-dashboard {
 }
 
 .status-ok {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: #dcece3;
+  color: #2b543f;
 }
 
 .status-warning {
@@ -403,11 +479,11 @@ body.layout-dashboard {
 }
 
 .low-stock-row {
-  background-color: #fff5f5;
+  background-color: #fff8f5;
 }
 
 .low-stock-row:hover {
-  background-color: #fee2e2;
+  background-color: #faede6;
 }
 
 /* Tags de Perfis de Usuário */
@@ -420,23 +496,23 @@ body.layout-dashboard {
 }
 
 .role-admin {
-  background-color: #f2e4e5;
-  color: #722f37;
+  background-color: #eeddd5;
+  color: #4a2c1d;
 }
 
 .role-gerente {
-  background-color: #f5eddb;
-  color: #70521c;
+  background-color: #e5ded2;
+  color: #3d322a;
 }
 
 .role-caixa {
-  background-color: #f5e8ce;
-  color: #775515;
+  background-color: #dce5df;
+  color: #2e4d41;
 }
 
 .role-estoque {
-  background-color: #ece8e1;
-  color: #51473e;
+  background-color: #eee4d4;
+  color: #63472c;
 }
 
 /* Botões de Ação na Tabela */
@@ -465,8 +541,8 @@ body.layout-dashboard {
 }
 
 .btn-action.edit:hover {
-  background-color: #f5eddb;
-  border-color: var(--accent);
+  background-color: var(--sidebar-hover);
+  border-color: var(--border);
 }
 
 .btn-action.delete:hover {
@@ -486,9 +562,9 @@ body.layout-dashboard {
 }
 
 .alert-success {
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
+  background-color: #dcece3;
+  color: #2b543f;
+  border: 1px solid #a3ceb9;
 }
 
 .alert-error {
@@ -504,7 +580,7 @@ body.layout-dashboard {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.5);
+  background-color: rgba(38, 33, 29, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -529,6 +605,7 @@ body.layout-dashboard {
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+  border: 1px solid var(--border-light);
 }
 
 .modal-header {
@@ -560,14 +637,14 @@ body.layout-dashboard {
 /* Responsividade básica */
 @media (max-width: 900px) {
   .sidebar {
-    width: 70px;
+    width: 72px;
   }
   .menu-list li a span {
     display: none;
   }
   .content {
-    margin-left: 70px;
-    width: calc(100% - 70px);
+    margin-left: 72px;
+    width: calc(100% - 72px);
     padding: 20px;
   }
 }

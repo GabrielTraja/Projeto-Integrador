@@ -11,8 +11,13 @@
 
     <!-- Cabeçalho Superior -->
     <header class="top-header">
-        <div class="company-name">
-            <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Seu negócio sempre no controle">
+        <div class="header-left">
+            <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" aria-label="Recolher ou expandir menu" title="Recolher/Expandir menu lateral">
+                <span class="toggle-icon">☰</span>
+            </button>
+            <div class="company-name">
+                <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Cafeteria & Gestão">
+            </div>
         </div>
         
         <div class="user-profile">
@@ -110,49 +115,49 @@
                     <legend>Dados do estabelecimento</legend>
                     <div class="settings-grid">
                         <label>Nome fantasia *
-                            <input name="nome_fantasia" id="nome_fantasia" maxlength="120" required>
+                            <input name="nome_fantasia" id="nome_fantasia" maxlength="120" placeholder="Ex: Aroma & Grão Cafeteria" required>
                         </label>
                         <label>Razão social
-                            <input name="razao_social" id="razao_social" maxlength="160">
+                            <input name="razao_social" id="razao_social" maxlength="160" placeholder="Ex: Aroma & Grão Cafés Especiais Ltda.">
                         </label>
                         <label>CNPJ
                             <input name="cnpj" id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" required>
                         </label>
                         <label>Inscrição estadual
-                            <input name="inscricao_estadual" id="inscricao_estadual" maxlength="30">
+                            <input name="inscricao_estadual" id="inscricao_estadual" maxlength="30" placeholder="Isento ou nº estadual">
                         </label>
                         <label>Telefone/WhatsApp
-                            <input name="telefone" id="telefone" type="tel" maxlength="30">
+                            <input name="telefone" id="telefone" type="tel" maxlength="30" placeholder="Ex: (11) 98765-4321">
                         </label>
                         <label>E-mail
-                            <input name="email" id="email" type="email" maxlength="120">
+                            <input name="email" id="email" type="email" maxlength="120" placeholder="Ex: contato@aromaegraocafe.com">
                         </label>
                         <label>CEP
                             <input name="cep" id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000">
                         </label>
                         <label>Endereço
-                            <input name="endereco" id="endereco" maxlength="160">
+                            <input name="endereco" id="endereco" maxlength="160" placeholder="Ex: Rua dos Baristas">
                         </label>
                         <label>Número
-                            <input name="numero" id="numero" maxlength="20">
+                            <input name="numero" id="numero" maxlength="20" placeholder="Ex: 120">
                         </label>
                         <label>Complemento
-                            <input name="complemento" id="complemento" maxlength="100">
+                            <input name="complemento" id="complemento" maxlength="100" placeholder="Ex: Loja 1">
                         </label>
                         <label>Bairro
-                            <input name="bairro" id="bairro" maxlength="100">
+                            <input name="bairro" id="bairro" maxlength="100" placeholder="Ex: Centro">
                         </label>
                         <label>Cidade
-                            <input name="cidade" id="cidade" maxlength="100">
+                            <input name="cidade" id="cidade" maxlength="100" placeholder="Ex: São Paulo">
                         </label>
                         <label>Estado (UF)
-                            <input name="estado" id="estado" maxlength="2" autocomplete="address-level1">
+                            <input name="estado" id="estado" maxlength="2" placeholder="SP" autocomplete="address-level1">
                         </label>
                         <label>Instagram ou rede social
-                            <input name="rede_social" id="rede_social" maxlength="120" placeholder="@suaempresa">
+                            <input name="rede_social" id="rede_social" maxlength="120" placeholder="Ex: @aromaegraocafe">
                         </label>
                         <label class="settings-span-2">Mensagem de agradecimento
-                            <input name="mensagem_agradecimento" id="mensagem_agradecimento" maxlength="255">
+                            <input name="mensagem_agradecimento" id="mensagem_agradecimento" maxlength="255" placeholder="Ex: Obrigado pelo carinho! Que seu dia seja tão bom quanto nosso café.">
                         </label>
                         <label class="settings-span-2">Logotipo (JPG, PNG ou WEBP; até 5 MB)
                             <input name="arquivo_logotipo" id="arquivo_logotipo" type="file" accept="image/jpeg,image/png,image/webp">

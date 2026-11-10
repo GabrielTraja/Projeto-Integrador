@@ -11,8 +11,13 @@
     
     <!-- Cabeçalho Superior -->
     <header class="top-header">
-        <div class="company-name">
-            <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Seu negócio sempre no controle">
+        <div class="header-left">
+            <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" aria-label="Recolher ou expandir menu" title="Recolher/Expandir menu lateral">
+                <span class="toggle-icon">☰</span>
+            </button>
+            <div class="company-name">
+                <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Cafeteria & Gestão">
+            </div>
         </div>
         
         <div class="user-profile">
@@ -47,7 +52,7 @@
                 
                 <div class="form-group full-width">
                     <label for="nomeProduto">Nome do Produto *:</label>
-                    <input type="text" id="nomeProduto" name="nomeProduto" placeholder="Ex: Camiseta Algodão Premium" class="inputProduto" required>
+                    <input type="text" id="nomeProduto" name="nomeProduto" placeholder="Ex: Cappuccino Cremoso com Canela" class="inputProduto" required>
                 </div>
 
                 <div class="form-group">
@@ -60,41 +65,40 @@
                     <select id="unidade" name="unidade" class="selectProduto" required>
                         <option value="UN" selected>UN (Unidade)</option>
                         <option value="KG">KG (Quilograma)</option>
-                        <option value="PC">PC (Peça)</option>
-                        <option value="PAR">PAR (Par)</option>
+                        <option value="PC">PC (Peça / Porção)</option>
                         <option value="L">L (Litro)</option>
-                        <option value="CX">CX (Caixa)</option>
+                        <option value="CX">CX (Caixa / Pacote)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="categoria">Categoria *:</label>
                     <select id="categoria" name="categoria" class="selectProduto" required>
-                        <option value="1">Geral</option>
+                        <option value="1">Cafés Especiais</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="precoCusto">Preço de Custo (R$):</label>
-                    <input type="number" id="precoCusto" name="precoCusto" step="0.01" min="0" placeholder="0,00" class="inputProduto" required>
+                    <input type="number" id="precoCusto" name="precoCusto" step="0.01" min="0" placeholder="4,50" class="inputProduto" required>
                 </div>
 
                 <div class="form-group">
                     <label for="precoVenda">Preço de Venda (R$) *:</label>
-                    <input type="number" id="precoVenda" name="precoVenda" step="0.01" min="0" placeholder="0,00" class="inputProduto" required>
+                    <input type="number" id="precoVenda" name="precoVenda" step="0.01" min="0" placeholder="12,50" class="inputProduto" required>
                 </div>
 
                 <div class="form-group">
                     <label for="estoqueAtual">Estoque Atual *:</label>
-                    <input type="number" id="estoqueAtual" name="estoqueAtual" min="0" placeholder="0" class="inputProduto" required>
+                    <input type="number" id="estoqueAtual" name="estoqueAtual" min="0" placeholder="50" class="inputProduto" required>
                 </div>
 
                 <div class="form-group">
                     <label for="estoqueMinimo">Estoque Mínimo:</label>
-                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" min="0" placeholder="0" class="inputProduto">
+                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" min="0" placeholder="10" class="inputProduto">
                 </div>
 
-                <div class="form-group full-width">
+                <div class="form-group form-group-image">
                     <label for="imagemProduto">Imagem do Produto:</label>
                     <input
                         type="file"
@@ -103,16 +107,16 @@
                         class="inputProduto file-input"
                         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     >
-                    <small class="image-help">JPG, JPEG, PNG ou WEBP. Tamanho máximo: 5 MB.</small>
+                    <small class="image-help">JPG, PNG ou WEBP (máx. 5 MB)</small>
                     <div class="product-image-preview" id="imagemProdutoPreviewContainer" hidden>
                         <img id="imagemProdutoPreview" src="icones/produtos.png" alt="Pré-visualização da imagem do produto">
-                        <button type="button" id="removerImagemProduto" class="btn-remove-image" hidden>Remover imagem</button>
+                        <button type="button" id="removerImagemProduto" class="btn-remove-image" hidden>Remover</button>
                     </div>
                 </div>
 
                 <div class="form-group full-width">
                     <label for="descricao">Descrição do Produto:</label>
-                    <textarea id="descricao" name="descricao" placeholder="Detalhes, especificações e observações do produto..." class="textareaProduto"></textarea>
+                    <textarea id="descricao" name="descricao" placeholder="Ex: Espresso duplo com leite vaporizado, espuma aveludada e canela em pó..." class="textareaProduto"></textarea>
                 </div>
 
                 <div class="form-actions full-width">

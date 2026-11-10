@@ -117,13 +117,34 @@ body {
   background-color: var(--primary-hover);
 }
 
-/* Links */
+/* Links e Cadastro */
 .links-login {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 14px;
   font-size: 13px;
+}
+
+.links-login .link-cadastro {
+  width: 100%;
+  display: block;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background-color: transparent;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.links-login .link-cadastro:hover {
+  background-color: var(--accent);
+  color: #ffffff;
+  text-decoration: none;
 }
 
 #caixaLogin a {

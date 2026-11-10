@@ -13,7 +13,7 @@ for (const [mime, formato, conteudo] of exemplos) {
     test(`armazena e remove imagem ${formato}`, async () => {
         const caminho = await salvarImagemProduto(`data:${mime};base64,${conteudo.toString('base64')}`);
         try {
-            assert.match(caminho, new RegExp(`^/uploads/[\\da-f-]+\\.${formato === 'JPG' ? 'jpg' : formato.toLowerCase()}$`, 'i'));
+            assert.match(caminho, new RegExp(`^/uploads/produtos/[\\da-f-]+\\.${formato === 'JPG' ? 'jpg' : formato.toLowerCase()}$`, 'i'));
             const arquivo = await fs.readFile(require('path').resolve(__dirname, '../uploads', caminho.slice('/uploads/'.length)));
             assert.deepEqual(arquivo, conteudo);
         } finally {

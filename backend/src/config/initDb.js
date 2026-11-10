@@ -168,13 +168,13 @@ async function initDatabase() {
             `, [id, nome, desc]);
         }
 
-        // 6. Seeds: Categorias Iniciais
+        // 6. Seeds: Categorias Iniciais (Tema Cafeteria)
         const categorias = [
-            [1, 'Vestuário', 'Roupas e peças de vestuário'],
-            [2, 'Calçados', 'Calçados e tênis'],
-            [3, 'Acessórios', 'Bolsas, cintos e acessórios'],
-            [4, 'Alimentos e Bebidas', 'Itens alimentícios e bebidas'],
-            [5, 'Geral', 'Produtos e artigos em geral']
+            [1, 'Cafés Especiais', 'Espressos, Cappuccinos, Lattes e cafés filtrados artesanais'],
+            [2, 'Bebidas Geladas', 'Iced coffees, Cold brews, Frappes e Chás'],
+            [3, 'Salgados e Lanches', 'Pães de queijo, Croissants, Quiches e Tostex'],
+            [4, 'Doces e Sobremesas', 'Bolos artesanais, Tortas, Cookies e Brownies'],
+            [5, 'Grãos e Acessórios', 'Cafés especiais em grãos, Canecas e Prensa francesa']
         ];
         for (const [id, nome, desc] of categorias) {
             await connection.query(`
@@ -184,59 +184,45 @@ async function initDatabase() {
             `, [id, nome, desc]);
         }
 
-        // 7. Seed: Usuário Admin Inicial (caso não exista nenhum usuário)
-        const [usuariosExistentes] = await connection.query(`SELECT COUNT(*) as total FROM usuario`);
-        const senhaAdminLegada = 'admin123';
-        const hashAdminLegado = 'scrypt$a23f4c2b9ec4dca3f8697d43dd0cbf4a$c7008aee41bb96224bc9064bbdd76f04d6774f65759b485067fde94ea3bb54c2264fbb68a42d89d1000139179dbe656ea745179a140c73cc177f3ef04ac667f9';
-        const [adminLegado] = await connection.query(`
-            SELECT id_usuario, senha FROM usuario WHERE login = 'admin' LIMIT 1
-        `);
-        if (adminLegado.length > 0 &&
-            [senhaAdminLegada, hashAdminLegado].includes(adminLegado[0].senha)) {
-            const senhaConfigurada = process.env.ADMIN_INITIAL_PASSWORD;
-            if (typeof senhaConfigurada !== 'string' || senhaConfigurada.length < 12) {
-                throw new Error('A conta admin ainda usa a credencial inicial conhecida. Configure ADMIN_INITIAL_PASSWORD com pelo menos 12 caracteres para substituí-la.');
-            }
-            await connection.query(
-                `UPDATE usuario SET senha = ? WHERE id_usuario = ?`,
-                [await hashPassword(senhaConfigurada), adminLegado[0].id_usuario]
-            );
-            console.log('✔ Credencial inicial da conta admin substituída pela senha configurada.');
-        }
-        if (usuariosExistentes[0].total === 0) {
-            const senhaConfigurada = process.env.ADMIN_INITIAL_PASSWORD;
-            if (typeof senhaConfigurada !== 'string' || senhaConfigurada.length < 12) {
-                throw new Error('Configure ADMIN_INITIAL_PASSWORD com pelo menos 12 caracteres para criar o administrador inicial.');
-            }
-            const senhaInicial = await hashPassword(senhaConfigurada);
+        // 7. Seed: Usuário Administrador Padrão (admin / admin123)
+        const senhaAdminHash = await hashPassword('admin123');
+        const [adminRows] = await connection.query(`SELECT id_usuario FROM usuario WHERE login = 'admin' LIMIT 1`);
+        if (adminRows.length === 0) {
             await connection.query(`
                 INSERT INTO usuario (nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `, [
-                'Administrador do Sistema',
+                'Administrador da Cafeteria',
                 '000.000.000-00',
                 'admin',
-                'admin@pdv.com',
+                'admin@cafeteria.com',
                 '(11) 99999-9999',
-                senhaInicial,
+                senhaAdminHash,
                 'ATIVO',
                 1
             ]);
-            console.log('✔ Usuário administrador inicial criado.');
+            console.log('✔ Usuário administrador padrão criado (admin / admin123).');
+        } else {
+            await connection.query(`
+                UPDATE usuario SET senha = ?, status = 'ATIVO' WHERE login = 'admin'
+            `, [senhaAdminHash]);
+            console.log('✔ Credencial do administrador padrão verificada (admin / admin123).');
         }
 
-        // 8. Seed: Produtos Iniciais (caso não exista nenhum produto)
+        // 8. Seed: Produtos Iniciais da Cafeteria (caso não exista nenhum produto)
         const [produtosExistentes] = await connection.query(`SELECT COUNT(*) as total FROM produto`);
         if (produtosExistentes[0].total === 0) {
             await connection.query(`
                 INSERT INTO produto (codigo_barras, nome, descricao, marca, preco_custo, preco_venda, estoque_atual, estoque_minimo, unidade_medida, status, id_categoria)
                 VALUES 
-                ('78910001', 'Camiseta Algodão Premium', 'Camiseta básica 100% algodão penteado', 'Marca Top', 25.00, 59.90, 45, 10, 'UN', 'ATIVO', 1),
-                ('78910002', 'Tênis Esportivo Pro', 'Tênis esportivo para corrida e academia', 'SportFit', 80.00, 189.90, 2, 5, 'PAR', 'ATIVO', 2),
-                ('78910003', 'Mochila Urbana Executiva', 'Mochila impermeável para notebook até 15.6"', 'UrbanBag', 45.00, 120.00, 18, 5, 'UN', 'ATIVO', 3),
-                ('78910004', 'Boné Casual Aba Curva', 'Boné unissex com ajuste regulável', 'StyleWear', 15.00, 39.90, 30, 8, 'UN', 'ATIVO', 3)
+                ('78910001', 'Cappuccino Cremoso com Canela', 'Espresso duplo, leite vaporizado, espuma aveludada e canela em pó', 'Café da Casa', 4.50, 12.50, 45, 10, 'UN', 'ATIVO', 1),
+                ('78910002', 'Espresso Tradicional 50ml', 'Café 100% arábica com notas de chocolate e caramelo', 'Café da Casa', 2.00, 7.00, 80, 15, 'UN', 'ATIVO', 1),
+                ('78910003', 'Pão de Queijo Recheado com Catupiry', 'Pão de queijo mineiro artesanal quentinho e recheado', 'Padaria Artesanal', 3.20, 8.50, 35, 8, 'UN', 'ATIVO', 3),
+                ('78910004', 'Croissant de Manteiga Francês', 'Folhado amanteigado francês assado fresquinho diariamente', 'Padaria Artesanal', 5.00, 14.00, 20, 5, 'UN', 'ATIVO', 3),
+                ('78910005', 'Bolo de Cenoura com Calda de Chocolate', 'Fatia generosa com cobertura aveludada de brigadeiro belga', 'Doceria da Casa', 4.00, 11.00, 15, 4, 'UN', 'ATIVO', 4),
+                ('78910006', 'Iced Mocha Caramelo 400ml', 'Café gelado com calda de caramelo artesanal e chantilly', 'Café da Casa', 5.50, 16.50, 25, 6, 'UN', 'ATIVO', 2)
             `);
-            console.log('✔ Produtos iniciais cadastrados com sucesso!');
+            console.log('✔ Produtos iniciais da cafeteria cadastrados com sucesso!');
         }
 
         // 9. Tabelas de Vendas e Caixa

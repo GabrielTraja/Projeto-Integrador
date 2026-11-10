@@ -58,10 +58,29 @@ const auth = {
                 }
             };
         });
+    },
+
+    inicializarSidebarToggle() {
+        // Aplica o estado de recolhido salvo no localStorage
+        const sidebarRecolhida = localStorage.getItem('sidebar_collapsed') === 'true';
+        if (sidebarRecolhida) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+        }
+
+        const btnToggle = document.getElementById('btnToggleSidebar');
+        if (btnToggle) {
+            btnToggle.onclick = () => {
+                const recolhida = document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebar_collapsed', recolhida ? 'true' : 'false');
+            };
+        }
     }
 };
 
 // Executa ao carregar as telas protegidas
 document.addEventListener('DOMContentLoaded', () => {
     auth.atualizarCabecalho();
+    auth.inicializarSidebarToggle();
 });
