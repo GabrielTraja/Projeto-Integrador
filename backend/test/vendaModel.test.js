@@ -5,10 +5,12 @@ const VendaModel = require('../src/models/vendaModel');
 
 let chamadas;
 let estoqueAtual;
+let existeCaixaAberto;
 
 beforeEach(() => {
     chamadas = [];
     estoqueAtual = 10;
+    existeCaixaAberto = true;
 
     db.getConnection = async () => ({
         beginTransaction: async () => {},
@@ -20,7 +22,7 @@ beforeEach(() => {
             chamadas.push({ sql, parametros });
 
             if (sql.startsWith('SELECT id_caixa FROM caixa')) {
-                return [[{ id_caixa: 3 }], undefined];
+                return [existeCaixaAberto ? [{ id_caixa: 3 }] : [], undefined];
             }
             if (sql.startsWith('SELECT id_produto, nome, preco_venda')) {
                 return [[{
@@ -32,14 +34,15 @@ beforeEach(() => {
                     status: 'ATIVO'
                 }], undefined];
             }
-            if (sql.startsWith('SELECT id_forma_pagamento FROM forma_pagamento')) {
+            if (sql.startsWith('SELECT id_forma_pagamento, descricao FROM forma_pagamento')) {
                 const formas = {
-                    Dinheiro: 1,
-                    Pix: 2,
-                    'Cartão de Débito': 3,
-                    'Cartão de Crédito': 4
+                    Dinheiro: { id_forma_pagamento: 1, descricao: 'Dinheiro' },
+                    Pix: { id_forma_pagamento: 2, descricao: 'Pix' },
+                    'Cartão de Débito': { id_forma_pagamento: 3, descricao: 'Cartão de Débito' },
+                    'Cartão de Crédito': { id_forma_pagamento: 4, descricao: 'Cartão de Crédito' },
+                    'Vale-Refeição': { id_forma_pagamento: 5, descricao: 'Vale-Refeição' }
                 };
-                return [[{ id_forma_pagamento: formas[parametros[0]] }], undefined];
+                return [[formas[parametros[0]]], undefined];
             }
             if (sql.startsWith('INSERT INTO venda')) {
                 return [{ insertId: 42 }, undefined];
@@ -80,7 +83,19 @@ test('rejeita pagamento em dinheiro insuficiente sem inserir a venda', async () 
         status: 400,
         message: /não pode ser menor/
     });
+    assert.equal(chamadas.some(({ sql }) => sql.startsWith('INSERT INTO venda')), false);
+    assert.equal(estoqueAtual, 10);
+});
 
+test('impede venda quando não existe uma sessão de caixa aberta', async () => {
+    existeCaixaAberto = false;
+
+    await assert.rejects(venda(), {
+        status: 409,
+        message: /Abra o caixa/
+    });
+
+    assert.equal(chamadas.some(({ sql }) => sql.startsWith('INSERT INTO caixa')), false);
     assert.equal(chamadas.some(({ sql }) => sql.startsWith('INSERT INTO venda')), false);
     assert.equal(estoqueAtual, 10);
 });
@@ -91,6 +106,14 @@ test('aceita PIX somente pelo valor exato e não calcula troco', async () => {
     assert.equal(resultado.troco, 0);
     assert.equal(resultado.valor_recebido, 20);
     assert.ok(chamadas.some(({ sql }) => sql.startsWith('INSERT INTO movimentacao_caixa')));
+});
+
+test('aceita outras formas de pagamento ativas cadastradas no banco', async () => {
+    const resultado = await venda({ forma_pagamento: 'Vale-Refeição', valor_recebido: 20 });
+
+    assert.equal(resultado.pagamentos[0].forma_pagamento, 'Vale-Refeição');
+    const movimento = chamadas.find(({ sql }) => sql.startsWith('INSERT INTO movimentacao_caixa'));
+    assert.equal(movimento.parametros[3], 5);
 });
 
 test('aceita cartões pelo valor exato e rejeita valor divergente', async () => {

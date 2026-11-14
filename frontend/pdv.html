@@ -16,7 +16,7 @@
                 <span class="toggle-icon">☰</span>
             </button>
             <div class="company-name">
-                <img class="company-logo" src="icones/logo-nexagusto.png" alt="Nexagusto — Cafeteria & Gestão">
+                <img class="company-logo" src="icones/logo.png" alt="Nexagusto — Cafeteria & Gestão">
             </div>
         </div>
         
@@ -31,7 +31,7 @@
         <ul class="menu-list">
             <li><a href="telaControle.html"><img src="icones/inicio.png" alt="Início"><span>Início</span></a></li>
             <li><a href="pdv.html" class="active"><img src="icones/pdv.png" alt="PDV"><span>PDV</span></a></li>
-            <li><a href="#"><img src="icones/caixa.png" alt="Caixa"><span>Caixa</span></a></li>
+            <li><a href="caixa.html"><img src="icones/caixa.png" alt="Caixa"><span>Caixa</span></a></li>
             <li><a href="controleEstoque.html"><img src="icones/estoque.png" alt="Estoque"><span>Estoque</span></a></li>
             <li><a href="cadastroProdutos.html"><img src="icones/produtos.png" alt="Produtos"><span>Produtos</span></a></li>
             <li><a href="controleUsuarios.html"><img src="icones/usuarios.png" alt="Usuários"><span>Usuários</span></a></li>
@@ -176,10 +176,7 @@
                         <div class="terminal-payment-field">
                             <label for="formaPagamento">Forma de Pagamento:</label>
                             <select id="formaPagamento" class="select-payment">
-                                <option value="Dinheiro">Dinheiro</option>
-                                <option value="Pix">Pix</option>
-                                <option value="Cartão de Débito">Cartão de Débito</option>
-                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="">Carregando formas de pagamento...</option>
                             </select>
                         </div>
 
@@ -255,10 +252,6 @@
                 </div>
                 <label for="formaPagamentoCombinado">Pagar saldo com:</label>
                 <select id="formaPagamentoCombinado" class="select-payment">
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Cartão de Débito">Cartão de Débito</option>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
                 </select>
                 <label for="valorPagamentoCombinado">Valor a pagar nesta forma:</label>
                 <input type="number" id="valorPagamentoCombinado" min="0.01" step="0.01" placeholder="Ex: 15,00">

@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cardEstoqueP = document.querySelector('.card-item:nth-child(3) p');
         if (cardEstoqueP) {
             const estoqueBaixo = produtos.filter(p => (parseFloat(p.estoque_atual) <= parseFloat(p.estoque_minimo))).length;
-            cardEstoqueP.innerHTML = `Total de <strong>${produtos.length}</strong> produtos cadastrados. <br><span style="color:#ef4444; font-weight:600;">${estoqueBaixo} produto(s) com estoque baixo!</span>`;
+            cardEstoqueP.innerHTML = `Total de <strong>${produtos.length}</strong> produtos cadastrados. <br><span style="color:#502818; font-weight:600;">${estoqueBaixo} produto(s) com estoque baixo!</span>`;
         }
 
         if ([1, 2].includes(Number(usuario?.id_tipo_usuario))) {

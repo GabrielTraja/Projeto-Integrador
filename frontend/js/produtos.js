@@ -25,7 +25,7 @@ async function carregarDados() {
         console.error('Erro ao carregar produtos:', erro);
         const tbody = document.querySelector('.stock-table tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar produtos: ${escapeHtml(erro.message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: #502818; padding: 20px;">Erro ao carregar produtos: ${escapeHtml(erro.message)}</td></tr>`;
         }
     }
 }
@@ -36,7 +36,7 @@ function mostrar() {
     if (!tbody) return;
 
     if (!listaItens || listaItens.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 30px; color: #64748b;">Nenhum produto cadastrado no momento.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 30px; color: #502818;">Nenhum produto cadastrado no momento.</td></tr>`;
         return;
     }
 

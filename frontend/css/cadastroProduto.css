@@ -5,7 +5,7 @@
 
 /* Bloco branco de fundo do formulário */
 .form-container {
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 30px;
@@ -58,7 +58,7 @@
 .textareaProduto:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.22);
+  box-shadow: 0 0 0 3px rgba(248, 120, 8, 0.18);
   background-color: var(--bg-card);
 }
 
@@ -118,16 +118,16 @@
   object-fit: cover;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: #ffffff;
+  background: #FFFFFF;
   flex-shrink: 0;
 }
 
 .btn-remove-image {
   padding: 6px 10px;
-  border: 1px solid #fecaca;
+  border: 1px solid rgba(248, 120, 8, 0.35);
   border-radius: var(--radius-sm);
   color: var(--danger);
-  background: #fff;
+  background: #FFFFFF;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -135,7 +135,7 @@
 }
 
 .btn-remove-image:hover {
-  background-color: #fee2e2;
+  background-color: rgba(248, 120, 8, 0.12);
 }
 
 /* Área e Botão de Enviar */
@@ -147,8 +147,8 @@
 
 .btn-submit {
   flex: 1;
-  background-color: var(--primary);
-  color: #ffffff;
+  background-color: var(--accent);
+  color: #FFFFFF;
   border: none;
   padding: 12px 20px;
   border-radius: var(--radius-sm);
@@ -159,12 +159,12 @@
 }
 
 .btn-submit:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--accent-hover);
 }
 
 .btn-cancel {
   padding: 12px 20px;
-  background-color: var(--sidebar-bg);
+  background-color: var(--bg-card-alt);
   color: var(--secondary);
   border: none;
   border-radius: var(--radius-sm);
@@ -179,7 +179,7 @@
 }
 
 .btn-cancel:hover {
-  background-color: var(--sidebar-hover);
+  background-color: rgba(248, 120, 8, 0.12);
 }
 
 @media (max-width: 768px) {

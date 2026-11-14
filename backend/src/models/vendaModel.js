@@ -1,16 +1,5 @@
 const db = require('../config/database');
 
-const formasPagamentoPermitidas = [
-    'Dinheiro',
-    'Pix',
-    'Cartão de Débito',
-    'Cartão de Crédito'
-];
-
-function normalizarFormaPagamento(valor) {
-    return String(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
-
 const VendaModel = {
     async criarVenda(dadosVenda) {
         const {
@@ -44,12 +33,12 @@ const VendaModel = {
         }
 
         const pagamentosValidados = entradaPagamentos.map(pagamento => {
-            const formaSelecionada = formasPagamentoPermitidas.find(
-                forma => normalizarFormaPagamento(forma) === normalizarFormaPagamento(pagamento?.forma_pagamento || '')
-            );
+            const formaSelecionada = typeof pagamento?.forma_pagamento === 'string'
+                ? pagamento.forma_pagamento.trim()
+                : '';
             const valorInformado = Number(pagamento?.valor);
-            if (!formaSelecionada) {
-                throw falhaValidacao('Forma de pagamento inválida. Utilize Dinheiro, Pix, Cartão de Débito ou Cartão de Crédito.');
+            if (!formaSelecionada || formaSelecionada.length > 50) {
+                throw falhaValidacao('Informe uma forma de pagamento válida.');
             }
             if (!Number.isFinite(valorInformado) || valorInformado <= 0) {
                 throw falhaValidacao('Cada valor de pagamento deve ser válido e maior que zero.');
@@ -71,20 +60,12 @@ const VendaModel = {
 
             // 1. Garante que exista um caixa aberto
             const [caixasAbertos] = await connection.query(`
-                SELECT id_caixa FROM caixa WHERE status = 'ABERTO' ORDER BY id_caixa DESC LIMIT 1
+                SELECT id_caixa FROM caixa WHERE status = 'ABERTO' ORDER BY id_caixa DESC LIMIT 1 FOR UPDATE
             `);
-
-            let id_caixa;
-            if (caixasAbertos.length > 0) {
-                id_caixa = caixasAbertos[0].id_caixa;
-            } else {
-                // Cria um caixa aberto automaticamente caso não exista
-                const [novoCaixa] = await connection.query(`
-                    INSERT INTO caixa (valor_inicial, status, observacao, id_usuario_abertura)
-                    VALUES (100.00, 'ABERTO', 'Caixa Aberto Automaticamente pelo PDV', ?)
-                `, [id_usuario]);
-                id_caixa = novoCaixa.insertId;
+            if (caixasAbertos.length === 0) {
+                throw Object.assign(new Error('Não há caixa aberto. Abra o caixa antes de registrar vendas.'), { status: 409 });
             }
+            const id_caixa = caixasAbertos[0].id_caixa;
 
             // 2. Calcula subtotal e valida itens
             let valor_subtotal = 0;
@@ -164,13 +145,14 @@ const VendaModel = {
 
             for (const pagamento of pagamentosValidados) {
                 const [formas] = await connection.query(`
-                    SELECT id_forma_pagamento FROM forma_pagamento
+                    SELECT id_forma_pagamento, descricao FROM forma_pagamento
                     WHERE LOWER(descricao) = LOWER(?) AND status = 'ATIVA' LIMIT 1
                 `, [pagamento.forma_pagamento]);
                 if (formas.length === 0) {
                     throw falhaValidacao('Forma de pagamento inválida ou inativa.');
                 }
                 pagamento.id_forma_pagamento = formas[0].id_forma_pagamento;
+                pagamento.forma_pagamento = formas[0].descricao;
                 pagamento.valor_registrado_centavos = pagamentosValidados.length === 1 &&
                     pagamento.forma_pagamento === 'Dinheiro'
                     ? totalCentavos

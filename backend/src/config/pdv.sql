@@ -257,7 +257,67 @@ CREATE TABLE IF NOT EXISTS movimentacao_caixa (
 );
 
 -- =====================================================
--- 11. MOVIMENTACOES DE ESTOQUE
+-- 11. MOVIMENTACOES MANUAIS E CONFERENCIA DO CAIXA
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS caixa_movimentacao (
+    id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
+    id_caixa INT NOT NULL,
+    tipo ENUM('SUPRIMENTO', 'SANGRIA', 'DESPESA') NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    categoria VARCHAR(80),
+    id_usuario INT NOT NULL,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_caixa_movimentacao_caixa
+        FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa),
+    CONSTRAINT fk_caixa_movimentacao_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    CONSTRAINT chk_caixa_movimentacao_valor CHECK (valor > 0),
+    CONSTRAINT chk_caixa_movimentacao_descricao CHECK (CHAR_LENGTH(TRIM(descricao)) > 0),
+    CONSTRAINT chk_caixa_movimentacao_categoria
+        CHECK (tipo <> 'DESPESA' OR (categoria IS NOT NULL AND CHAR_LENGTH(TRIM(categoria)) > 0))
+);
+
+CREATE TABLE IF NOT EXISTS caixa_fechamento (
+    id_fechamento INT AUTO_INCREMENT PRIMARY KEY,
+    id_caixa INT NOT NULL UNIQUE,
+    id_usuario INT NOT NULL,
+    data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_vendas DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_dinheiro_vendido DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_suprimentos DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_sangrias DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    total_despesas DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    saldo_esperado_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    saldo_informado_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    diferenca_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    diferenca_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT fk_caixa_fechamento_caixa
+        FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa),
+    CONSTRAINT fk_caixa_fechamento_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE IF NOT EXISTS caixa_fechamento_pagamento (
+    id_fechamento_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+    id_fechamento INT NOT NULL,
+    id_forma_pagamento INT NOT NULL,
+    descricao VARCHAR(50) NOT NULL,
+    valor_esperado DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    valor_informado DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    diferenca DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT fk_caixa_fechamento_pagamento_fechamento
+        FOREIGN KEY (id_fechamento) REFERENCES caixa_fechamento(id_fechamento),
+    CONSTRAINT fk_caixa_fechamento_pagamento_forma
+        FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento),
+    CONSTRAINT uq_caixa_fechamento_forma UNIQUE (id_fechamento, id_forma_pagamento),
+    CONSTRAINT chk_caixa_fechamento_pagamento_valores
+        CHECK (valor_esperado >= 0 AND valor_informado >= 0)
+);
+
+-- =====================================================
+-- 12. MOVIMENTACOES DE ESTOQUE
 -- =====================================================
 
 CREATE TABLE IF NOT EXISTS movimentacao_estoque (
@@ -288,7 +348,7 @@ CREATE TABLE IF NOT EXISTS movimentacao_estoque (
 );
 
 -- =====================================================
--- 12. CONFIGURACAO DO ESTABELECIMENTO E COMPROVANTES
+-- 13. CONFIGURACAO DO ESTABELECIMENTO E COMPROVANTES
 -- =====================================================
 
 CREATE TABLE IF NOT EXISTS configuracao_estabelecimento (
@@ -328,7 +388,7 @@ CREATE TABLE IF NOT EXISTS configuracao_estabelecimento (
 );
 
 -- =====================================================
--- 13. DADOS INICIAIS: TIPOS DE USUARIO
+-- 14. DADOS INICIAIS: TIPOS DE USUARIO
 -- =====================================================
 
 INSERT INTO tipo_usuario (id_tipo_usuario, nome, descricao) VALUES
@@ -339,7 +399,7 @@ INSERT INTO tipo_usuario (id_tipo_usuario, nome, descricao) VALUES
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 
 -- =====================================================
--- 14. DADOS INICIAIS: CATEGORIAS DE PRODUTOS (CAFETERIA)
+-- 15. DADOS INICIAIS: CATEGORIAS DE PRODUTOS (CAFETERIA)
 -- =====================================================
 
 INSERT INTO categoria (id_categoria, nome, descricao) VALUES
@@ -351,7 +411,7 @@ INSERT INTO categoria (id_categoria, nome, descricao) VALUES
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), descricao = VALUES(descricao);
 
 -- =====================================================
--- 15. DADOS INICIAIS: FORMAS DE PAGAMENTO
+-- 16. DADOS INICIAIS: FORMAS DE PAGAMENTO
 -- =====================================================
 
 INSERT INTO forma_pagamento (descricao) VALUES
@@ -362,7 +422,7 @@ INSERT INTO forma_pagamento (descricao) VALUES
 ON DUPLICATE KEY UPDATE descricao = VALUES(descricao);
 
 -- =====================================================
--- 16. USUARIO ADMINISTRADOR PADRAO
+-- 17. USUARIO ADMINISTRADOR PADRAO
 -- =====================================================
 
 INSERT INTO usuario (id_usuario, nome, cpf, login, email, telefone, senha, status, id_tipo_usuario)
@@ -370,7 +430,7 @@ VALUES (1, 'Administrador da Cafeteria', '000.000.000-00', 'admin', 'admin@cafet
 ON DUPLICATE KEY UPDATE nome = VALUES(nome), status = 'ATIVO';
 
 -- =====================================================
--- 17. INDICES PARA CONSULTAS FREQUENTES
+-- 18. INDICES PARA CONSULTAS FREQUENTES
 -- =====================================================
 
 DROP PROCEDURE IF EXISTS criar_indice_se_ausente;
@@ -399,9 +459,11 @@ DELIMITER ;
 
 CALL criar_indice_se_ausente('venda', 'idx_venda_data', 'data_hora');
 CALL criar_indice_se_ausente('venda', 'idx_venda_status', 'status');
+CALL criar_indice_se_ausente('caixa', 'idx_caixa_status', 'status');
 CALL criar_indice_se_ausente('item_venda', 'idx_item_venda_venda', 'id_venda');
 CALL criar_indice_se_ausente('item_venda', 'idx_item_venda_produto', 'id_produto');
 CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_data', 'data_hora');
 CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto');
+CALL criar_indice_se_ausente('caixa_movimentacao', 'idx_caixa_movimentacao_caixa_data', 'id_caixa');
 CALL criar_indice_se_ausente('produto', 'idx_produto_nome', 'nome');
 DROP PROCEDURE criar_indice_se_ausente;

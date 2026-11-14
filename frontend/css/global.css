@@ -4,46 +4,35 @@
    ========================================================================== */
 
 :root {
-  /* Tons terrosos / Café */
-  --primary: #4a2c1d;         /* Café torrado intenso / espresso */
-  --primary-hover: #361f14;   /* Café torrado escuro */
-  --primary-light: #5f3825;   /* Café com caramelo */
-  --secondary: #3d322a;       /* Grafite café */
-  
-  /* Verde Sálvia & Destaques Comerciais */
-  --accent: #52796f;          /* Verde sálvia aconchegante */
-  --accent-hover: #3e5e56;    /* Verde sálvia escuro */
-  --success: #436b58;         /* Verde sálvia botânico para botões de venda/sucesso */
-  --success-hover: #335344;
-  
-  /* Alertas e Ações */
-  --danger: #b83a2d;          /* Vermelho cerâmico */
-  --danger-hover: #9c2e22;
-  --warning: #c87a29;         /* Âmbar / caramelo torrado */
-  
-  /* Bege / Creme */
-  --bg-main: #f7f3ec;         /* Fundo creme suave aconchegante */
-  --bg-card: #ffffff;         /* Superfície limpa de cartões */
-  --bg-card-alt: #fbf8f4;     /* Creme muito claro */
-  --sidebar-bg: #ece2d3;      /* Bege aconchegante de cafeteria */
-  --sidebar-hover: #dfd2be;   /* Bege toffee */
-  
-  /* Bordas Terrosas Suaves */
-  --border: #d8ccbb;
-  --border-light: #e8ded0;
-  
-  /* Tipografia e Contrastes */
-  --text-main: #26211d;       /* Grafite terroso profundo */
-  --text-muted: #72655b;      /* Marrom acinzentado */
-  --text-light: #fbf8f4;      /* Creme claro sobre café */
+  --primary: #201008;
+  --primary-hover: #502818;
+  --primary-light: #502818;
+  --secondary: #502818;
+  --accent: #F87808;
+  --accent-hover: #502818;
+  --success: #185828;
+  --success-hover: #201008;
+  --danger: #502818;
+  --danger-hover: #201008;
+  --warning: #F87808;
+  --bg-main: #F8F4F0;
+  --bg-card: #FFFFFF;
+  --bg-card-alt: #F8F4F0;
+  --sidebar-bg: #201008;
+  --sidebar-hover: #502818;
+  --border: rgba(32, 16, 8, 0.18);
+  --border-light: rgba(32, 16, 8, 0.1);
+  --text-main: #201008;
+  --text-muted: #502818;
+  --text-light: #FFFFFF;
   
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   
-  --shadow-sm: 0 1px 3px rgba(42, 27, 18, 0.06);
-  --shadow-md: 0 4px 10px -1px rgba(42, 27, 18, 0.08);
-  --shadow-lg: 0 12px 20px -3px rgba(42, 27, 18, 0.12);
+  --shadow-sm: 0 1px 3px rgba(32, 16, 8, 0.06);
+  --shadow-md: 0 4px 10px -1px rgba(32, 16, 8, 0.08);
+  --shadow-lg: 0 12px 20px -3px rgba(32, 16, 8, 0.12);
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -76,7 +65,7 @@ body.layout-dashboard {
   width: 100%;
   height: 60px;
   background-color: var(--primary);
-  box-shadow: 0 2px 6px rgba(42, 27, 18, 0.15);
+  box-shadow: 0 2px 6px rgba(32, 16, 8, 0.15);
   padding: 0 30px;
   display: flex;
   justify-content: space-between;
@@ -123,11 +112,11 @@ body.layout-dashboard {
 
 .company-logo {
   display: block;
-  width: 220px;
-  height: 48px;
-  object-fit: cover;
+  width: 176px;
+  height: 58px;
+  object-fit: contain;
   object-position: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background-color: var(--bg-main);
 }
 
@@ -145,7 +134,7 @@ body.layout-dashboard {
 
 .user-role-badge {
   background-color: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  color: #FFFFFF;
   font-size: 0.75rem;
   padding: 3px 8px;
   border-radius: 12px;
@@ -153,7 +142,7 @@ body.layout-dashboard {
 
 .btn-logout {
   background-color: var(--danger);
-  color: #ffffff;
+  color: #FFFFFF;
   text-decoration: none;
   padding: 6px 14px;
   border-radius: var(--radius-sm);
@@ -201,7 +190,7 @@ body.layout-dashboard {
   flex: 1;
   display: flex;
   align-items: center;
-  color: var(--primary);
+  color: var(--text-light);
   text-decoration: none;
   padding: 14px 20px;
   font-weight: 600;
@@ -218,12 +207,13 @@ body.layout-dashboard {
   object-fit: contain;
   margin-right: 14px;
   flex-shrink: 0;
+  filter: brightness(0) invert(1);
 }
 
 .menu-list li:hover a,
 .menu-list li a.active {
-  background-color: var(--sidebar-hover);
-  color: var(--primary);
+  background-color: var(--accent);
+  color: var(--text-light);
 }
 
 /* ==========================================================================
@@ -322,7 +312,7 @@ body.sidebar-collapsed .pdv-content {
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
   outline: none;
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   color: var(--text-main);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -331,13 +321,13 @@ body.sidebar-collapsed .pdv-content {
 .select-category:focus,
 .form-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(82, 121, 111, 0.2);
+  box-shadow: 0 0 0 3px rgba(248, 120, 8, 0.18);
 }
 
 .btn-search {
   padding: 10px 18px;
-  background-color: var(--primary);
-  color: #ffffff;
+  background-color: var(--accent);
+  color: #FFFFFF;
   border: none;
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
@@ -348,14 +338,14 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .btn-search:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--accent-hover);
 }
 
 .btn-add-product,
 .btn-primary {
   padding: 10px 18px;
-  background-color: var(--success);
-  color: #ffffff;
+  background-color: var(--accent);
+  color: #FFFFFF;
   text-decoration: none;
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
@@ -371,7 +361,7 @@ body.sidebar-collapsed .pdv-content {
 
 .btn-add-product:hover,
 .btn-primary:hover {
-  background-color: var(--success-hover);
+  background-color: var(--accent-hover);
 }
 
 /* ==========================================================================
@@ -449,7 +439,7 @@ body.sidebar-collapsed .pdv-content {
   object-fit: cover;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background-color: var(--sidebar-bg);
+  background-color: var(--bg-main);
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -469,21 +459,21 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .status-ok {
-  background-color: #dcece3;
-  color: #2b543f;
+  background-color: rgba(24, 88, 40, 0.12);
+  color: #185828;
 }
 
 .status-warning {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: rgba(248, 120, 8, 0.12);
+  color: #502818;
 }
 
 .low-stock-row {
-  background-color: #fff8f5;
+  background-color: #F8F4F0;
 }
 
 .low-stock-row:hover {
-  background-color: #faede6;
+  background-color: rgba(248, 120, 8, 0.08);
 }
 
 /* Tags de Perfis de Usuário */
@@ -496,23 +486,23 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .role-admin {
-  background-color: #eeddd5;
-  color: #4a2c1d;
+  background-color: rgba(80, 40, 24, 0.12);
+  color: #201008;
 }
 
 .role-gerente {
-  background-color: #e5ded2;
-  color: #3d322a;
+  background-color: rgba(80, 40, 24, 0.12);
+  color: #502818;
 }
 
 .role-caixa {
-  background-color: #dce5df;
-  color: #2e4d41;
+  background-color: rgba(24, 88, 40, 0.12);
+  color: #185828;
 }
 
 .role-estoque {
-  background-color: #eee4d4;
-  color: #63472c;
+  background-color: rgba(80, 40, 24, 0.12);
+  color: #502818;
 }
 
 /* Botões de Ação na Tabela */
@@ -532,7 +522,7 @@ body.sidebar-collapsed .pdv-content {
   transition: background-color 0.2s, transform 0.1s;
   margin-right: 4px;
   border: 1px solid var(--border-light);
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   cursor: pointer;
 }
 
@@ -541,13 +531,13 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .btn-action.edit:hover {
-  background-color: var(--sidebar-hover);
+  background-color: rgba(248, 120, 8, 0.12);
   border-color: var(--border);
 }
 
 .btn-action.delete:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
+  background-color: rgba(248, 120, 8, 0.12);
+  border-color: rgba(248, 120, 8, 0.35);
 }
 
 /* ==========================================================================
@@ -562,15 +552,15 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .alert-success {
-  background-color: #dcece3;
-  color: #2b543f;
-  border: 1px solid #a3ceb9;
+  background-color: rgba(24, 88, 40, 0.12);
+  color: #185828;
+  border: 1px solid rgba(24, 88, 40, 0.3);
 }
 
 .alert-error {
-  background-color: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
+  background-color: rgba(248, 120, 8, 0.12);
+  color: #502818;
+  border: 1px solid rgba(248, 120, 8, 0.35);
 }
 
 /* Modal Genérico para Edição Rápida / Visualização */
@@ -580,7 +570,7 @@ body.sidebar-collapsed .pdv-content {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(38, 33, 29, 0.55);
+  background-color: rgba(32, 16, 8, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -596,7 +586,7 @@ body.sidebar-collapsed .pdv-content {
 }
 
 .modal-content {
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   padding: 24px 28px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -655,8 +645,8 @@ body.sidebar-collapsed .pdv-content {
   }
 
   .company-logo {
-    width: 150px;
-    height: 42px;
+    width: 144px;
+    height: 48px;
   }
 
   .user-profile {

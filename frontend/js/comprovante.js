@@ -19,7 +19,7 @@ window.comprovante = {
                 <style>
                     @page { size: ${largura}mm auto; margin: 2mm; }
                     * { box-sizing: border-box; }
-                    body { margin: 0; color: #111; font: 12px/1.35 Arial, sans-serif; }
+                    body { margin: 0; color: #201008; font: 12px/1.35 Arial, sans-serif; }
                     .toolbar { display: flex; gap: 8px; justify-content: center; padding: 12px; }
                     .toolbar button { border: 0; border-radius: 4px; padding: 9px 14px; cursor: pointer; }
                     .receipt { width: 100%; max-width: calc(${largura}mm - 4mm); margin: 0 auto; padding: 1mm; }
@@ -29,18 +29,18 @@ window.comprovante = {
                     .logo { display: block; max-width: 70%; max-height: 24mm; object-fit: contain; margin: 0 auto 5px; }
                     .name { font-size: 15px; font-weight: 700; }
                     .small { font-size: 10px; }
-                    .muted { color: #444; }
-                    .rule { border: 0; border-top: 1px dashed #555; margin: 7px 0; }
+                    .muted { color: #502818; }
+                    .rule { border: 0; border-top: 1px dashed #502818; margin: 7px 0; }
                     .meta { display: flex; justify-content: space-between; gap: 5px; }
                     .item { margin: 6px 0; overflow-wrap: anywhere; }
                     .item-name { font-weight: 600; }
                     .item-detail { display: flex; justify-content: space-between; gap: 5px; }
                     .total { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
                     .message { margin-top: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
-                    .demo { border: 1px dashed #555; padding: 3px; margin-bottom: 5px; text-align: center; font-weight: 700; }
+                    .demo { border: 1px dashed #502818; padding: 3px; margin-bottom: 5px; text-align: center; font-weight: 700; }
                     @media screen {
-                        body { background: #e5e7eb; padding-bottom: 20px; }
-                        .receipt-copy { background: #fff; margin: 10px auto; box-shadow: 0 1px 5px #999; }
+                        body { background: #F8F4F0; padding-bottom: 20px; }
+                        .receipt-copy { background: #FFFFFF; margin: 10px auto; box-shadow: 0 1px 5px rgba(32, 16, 8, 0.18); }
                     }
                     @media print {
                         .toolbar { display: none; }

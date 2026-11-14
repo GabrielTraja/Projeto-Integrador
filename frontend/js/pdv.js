@@ -6,6 +6,7 @@ let produtosCatalogo = [];
 let carrinho = [];
 let vendaEmProcessamento = false;
 let pagamentosCombinadosPendentes = [];
+let formasPagamentoDisponiveis = [];
 let configuracaoEstabelecimento = null;
 let ultimaVendaComprovante = null;
 let erroConfiguracaoEstabelecimento = null;
@@ -92,6 +93,40 @@ async function carregarCategorias() {
     }
 }
 
+async function carregarFormasPagamento() {
+    const selectPagamento = document.getElementById('formaPagamento');
+    const selectCombinado = document.getElementById('formaPagamentoCombinado');
+    try {
+        formasPagamentoDisponiveis = await api.get('/api/caixa/formas-pagamento');
+        selectPagamento.disabled = false;
+        selectPagamento.replaceChildren(...formasPagamentoDisponiveis.map(forma => {
+            const option = document.createElement('option');
+            option.value = forma.descricao;
+            option.textContent = forma.descricao;
+            return option;
+        }));
+        const formaPadrao = formasPagamentoDisponiveis.find(forma => forma.descricao === 'Dinheiro') ||
+            formasPagamentoDisponiveis[0];
+        if (formaPadrao) selectPagamento.value = formaPadrao.descricao;
+        if (selectCombinado) {
+            selectCombinado.replaceChildren(...formasPagamentoDisponiveis.map(forma => {
+                const option = document.createElement('option');
+                option.value = forma.descricao;
+                option.textContent = forma.descricao;
+                return option;
+            }));
+        }
+        if (formasPagamentoDisponiveis.length === 0) {
+            selectPagamento.disabled = true;
+            exibirMensagemVenda('Não há formas de pagamento ativas. Ative uma forma para registrar vendas.', 'erro');
+        }
+    } catch (erro) {
+        selectPagamento.replaceChildren(new Option('Erro ao carregar formas de pagamento', ''));
+        selectPagamento.disabled = true;
+        exibirMensagemVenda(`Não foi possível carregar as formas de pagamento: ${erro.message}`, 'erro');
+    }
+}
+
 async function carregarProdutos() {
     const listaProdutos = document.getElementById('listaProdutos');
     if (!listaProdutos) return;
@@ -119,7 +154,7 @@ async function carregarProdutos() {
     } catch (erro) {
         console.error('Erro ao buscar produtos no banco:', erro);
         listaProdutos.innerHTML = `
-            <div class="pdv-empty" style="color: #ef4444; border-color: #fca5a5;">
+            <div class="pdv-empty" style="color: #502818; border-color: rgba(248, 120, 8, 0.35);">
                 Erro ao conectar ao banco de dados: ${escapeHtml(erro.message)}
             </div>
         `;
@@ -326,7 +361,7 @@ function atualizarTerminal() {
 
         html += `
             <tr>
-                <td style="color: #94a3b8; font-weight: 600;">${index + 1}</td>
+                <td style="color: #502818; font-weight: 600;">${index + 1}</td>
                 <td>
                     <span class="terminal-item-name">${escapeHtml(item.nome)}</span>
                     ${item.codigo_barras ? `<span class="terminal-item-code">${escapeHtml(item.codigo_barras)}</span>` : ''}
@@ -339,7 +374,7 @@ function atualizarTerminal() {
                     </div>
                 </td>
                 <td style="text-align: right; white-space: nowrap;">${formatarMoeda(item.preco_venda)}</td>
-                <td style="text-align: right; font-weight: 700; color: #166534; white-space: nowrap;">
+                <td style="text-align: right; font-weight: 700; color: #185828; white-space: nowrap;">
                     ${formatarMoeda(itemSubtotalCentavos / 100)}
                 </td>
                 <td style="text-align: center;">
@@ -391,16 +426,16 @@ function calcularTroco() {
         const trocoCentavos = recebidoCentavos - totalCentavos;
         if (trocoCentavos >= 0) {
             trocoEl.textContent = formatarMoeda(trocoCentavos / 100);
-            trocoEl.style.color = '#15803d';
+            trocoEl.style.color = '#185828';
             if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Troco:';
         } else {
             trocoEl.textContent = `Faltam ${formatarMoeda(Math.abs(trocoCentavos) / 100)}`;
-            trocoEl.style.color = '#dc2626';
+            trocoEl.style.color = '#502818';
             if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Pendente:';
         }
     } else {
         trocoEl.textContent = 'R$ 0,00';
-        trocoEl.style.color = '#15803d';
+        trocoEl.style.color = '#185828';
         if (trocoContainer) trocoContainer.querySelector('span').textContent = 'Troco:';
     }
 
@@ -481,7 +516,7 @@ function abrirModalPagamentoCombinado(pagamentos, totalCentavos) {
         return linha;
     }));
     saldoEl.textContent = formatarMoeda(saldoCentavos / 100);
-    formaRestanteEl.replaceChildren(...['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito']
+    formaRestanteEl.replaceChildren(...formasPagamentoDisponiveis.map(forma => forma.descricao)
         .filter(forma => forma !== pagamentos[pagamentos.length - 1].forma_pagamento)
         .map(forma => {
             const option = document.createElement('option');
@@ -645,16 +680,16 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
         ? venda.pagamentos
         : [{ forma_pagamento: formaPagamento, valor: venda?.valor_total }];
     const pagamentosHtml = pagamentosVenda.map(pagamento => `
-        <div class="receipt-item-row" style="color: #64748b;">
+        <div class="receipt-item-row" style="color: #502818;">
             <span>${escapeHtml(pagamento.forma_pagamento)}:</span>
             <span>${formatarMoeda(pagamento.valor)}</span>
         </div>
     `).join('');
 
     reciboConteudo.innerHTML = `
-        <div style="text-align: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #cbd5e1;">
-            <h4 style="margin: 0; color: #0f172a; font-size: 16px;">Comprovante de Venda</h4>
-            <span style="font-size: 12px; color: #64748b;">COMPROVANTE NÃO FISCAL #${venda?.id_venda || ''}</span>
+        <div style="text-align: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed rgba(32, 16, 8, 0.18);">
+            <h4 style="margin: 0; color: #201008; font-size: 16px;">Comprovante de Venda</h4>
+            <span style="font-size: 12px; color: #502818;">COMPROVANTE NÃO FISCAL #${venda?.id_venda || ''}</span>
         </div>
         <div style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
             ${itensHtml}
@@ -665,7 +700,7 @@ function exibirReciboSucesso(venda, itensVendidos, formaPagamento) {
         </div>
         ${pagamentosHtml}
         ${venda?.troco > 0 ? `
-            <div class="receipt-item-row" style="color: #15803d; font-weight: 600;">
+            <div class="receipt-item-row" style="color: #185828; font-weight: 600;">
                 <span>Troco:</span>
                 <span>${formatarMoeda(venda.troco)}</span>
             </div>
@@ -690,6 +725,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Carrega as configurações persistidas de impressão e os dados de catálogo
     await carregarConfiguracaoEstabelecimento();
+    await carregarFormasPagamento();
     await carregarCategorias();
     await carregarProdutos();
 

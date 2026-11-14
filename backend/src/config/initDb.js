@@ -351,6 +351,64 @@ async function initDatabase() {
             );
         `);
 
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS caixa_movimentacao (
+                id_movimentacao INT AUTO_INCREMENT PRIMARY KEY,
+                id_caixa INT NOT NULL,
+                tipo ENUM('SUPRIMENTO', 'SANGRIA', 'DESPESA') NOT NULL,
+                valor DECIMAL(12,2) NOT NULL,
+                descricao VARCHAR(255) NOT NULL,
+                categoria VARCHAR(80),
+                id_usuario INT NOT NULL,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_caixa_movimentacao_caixa FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa),
+                CONSTRAINT fk_caixa_movimentacao_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+                CONSTRAINT chk_caixa_movimentacao_valor CHECK (valor > 0),
+                CONSTRAINT chk_caixa_movimentacao_descricao CHECK (CHAR_LENGTH(TRIM(descricao)) > 0),
+                CONSTRAINT chk_caixa_movimentacao_categoria
+                    CHECK (tipo <> 'DESPESA' OR (categoria IS NOT NULL AND CHAR_LENGTH(TRIM(categoria)) > 0))
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS caixa_fechamento (
+                id_fechamento INT AUTO_INCREMENT PRIMARY KEY,
+                id_caixa INT NOT NULL UNIQUE,
+                id_usuario INT NOT NULL,
+                data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                total_vendas DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                total_dinheiro_vendido DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                total_suprimentos DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                total_sangrias DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                total_despesas DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                saldo_esperado_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                saldo_informado_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                diferenca_dinheiro DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                diferenca_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                CONSTRAINT fk_caixa_fechamento_caixa FOREIGN KEY (id_caixa) REFERENCES caixa(id_caixa),
+                CONSTRAINT fk_caixa_fechamento_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+            );
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS caixa_fechamento_pagamento (
+                id_fechamento_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+                id_fechamento INT NOT NULL,
+                id_forma_pagamento INT NOT NULL,
+                descricao VARCHAR(50) NOT NULL,
+                valor_esperado DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                valor_informado DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                diferenca DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                CONSTRAINT fk_caixa_fechamento_pagamento_fechamento
+                    FOREIGN KEY (id_fechamento) REFERENCES caixa_fechamento(id_fechamento),
+                CONSTRAINT fk_caixa_fechamento_pagamento_forma
+                    FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento),
+                CONSTRAINT uq_caixa_fechamento_forma UNIQUE (id_fechamento, id_forma_pagamento),
+                CONSTRAINT chk_caixa_fechamento_pagamento_valores
+                    CHECK (valor_esperado >= 0 AND valor_informado >= 0)
+            );
+        `);
+
         const [movimentacaoCaixaIndices] = await connection.query(`
             SELECT index_name AS ix_name, COUNT(*) AS colunas, MAX(column_name) AS coluna
             FROM information_schema.statistics
@@ -448,6 +506,7 @@ async function initDatabase() {
         }
 
         const indices = [
+            ['caixa', 'idx_caixa_status', 'status'],
             ['venda', 'idx_venda_data', 'data_hora'],
             ['venda', 'idx_venda_status', 'status'],
             ['item_venda', 'idx_item_venda_venda', 'id_venda'],
@@ -456,6 +515,7 @@ async function initDatabase() {
             ['movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto'],
             ['movimentacao_caixa', 'idx_movimentacao_caixa_data', 'data_hora'],
             ['movimentacao_caixa', 'idx_movimentacao_caixa_id_caixa', 'id_caixa'],
+            ['caixa_movimentacao', 'idx_caixa_movimentacao_caixa_data', 'id_caixa'],
             ['produto', 'idx_produto_nome', 'nome']
         ];
         for (const [table, index, column] of indices) {
@@ -473,15 +533,6 @@ async function initDatabase() {
         const formasPagamento = ['Dinheiro', 'Pix', 'Cartão de Débito', 'Cartão de Crédito'];
         for (const forma of formasPagamento) {
             await connection.query(`INSERT IGNORE INTO forma_pagamento (descricao) VALUES (?)`, [forma]);
-        }
-
-        // Seed: Caixa Aberto Padrão
-        const [caixas] = await connection.query(`SELECT COUNT(*) as total FROM caixa`);
-        if (caixas[0].total === 0) {
-            await connection.query(`
-                INSERT INTO caixa (valor_inicial, status, observacao, id_usuario_abertura)
-                VALUES (150.00, 'ABERTO', 'Caixa Inicial PDV', 1)
-            `);
         }
 
         console.log('✔ Banco de dados e tabelas inicializados com sucesso.');

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caixa - Nexagusto</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/caixa.css">
+</head>
+<body class="layout-dashboard">
+    <header class="top-header">
+        <div class="header-left">
+            <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" aria-label="Recolher ou expandir menu" title="Recolher/Expandir menu lateral">
+                <span class="toggle-icon">☰</span>
+            </button>
+            <div class="company-name">
+                <img class="company-logo" src="icones/logo.png" alt="Nexagusto — Cafeteria & Gestão">
+            </div>
+        </div>
+        <div class="user-profile">
+            <span class="user-name">Carregando...</span>
+            <button class="btn-logout">Sair</button>
+        </div>
+    </header>
+
+    <nav class="sidebar" aria-label="Navegação principal">
+        <ul class="menu-list">
+            <li><a href="telaControle.html"><img src="icones/inicio.png" alt=""><span>Início</span></a></li>
+            <li><a href="pdv.html"><img src="icones/pdv.png" alt=""><span>PDV</span></a></li>
+            <li><a href="caixa.html" class="active" aria-current="page"><img src="icones/caixa.png" alt=""><span>Caixa</span></a></li>
+            <li><a href="controleEstoque.html"><img src="icones/estoque.png" alt=""><span>Estoque</span></a></li>
+            <li><a href="cadastroProdutos.html"><img src="icones/produtos.png" alt=""><span>Produtos</span></a></li>
+            <li><a href="controleUsuarios.html"><img src="icones/usuarios.png" alt=""><span>Usuários</span></a></li>
+            <li><a href="#"><img src="icones/relatorio.png" alt=""><span>Relatórios</span></a></li>
+            <li><a href="telaControle.html#configuracoes"><img src="icones/configuracao.png" alt=""><span>Configurações</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="content caixa-content">
+        <div class="welcome-section">
+            <h1>Controle de Caixa</h1>
+            <p>Acompanhe o expediente, registre movimentações e confira os recebimentos do PDV.</p>
+        </div>
+
+        <p id="mensagemCaixa" class="caixa-message" role="status" aria-live="polite" hidden></p>
+
+        <section class="caixa-section" id="secaoAbertura" hidden aria-labelledby="tituloAbertura">
+            <div class="section-heading">
+                <div>
+                    <h2 id="tituloAbertura">Abrir novo caixa</h2>
+                    <p>Informe o valor em dinheiro disponível para iniciar o expediente.</p>
+                </div>
+                <span class="status-badge status-closed">FECHADO</span>
+            </div>
+            <form id="formAbertura" class="caixa-form opening-form">
+                <label for="valorInicial">Valor inicial em dinheiro
+                    <input type="number" id="valorInicial" name="valor_inicial" min="0" max="9999999999.99" step="0.01" placeholder="0,00" required>
+                </label>
+                <div class="opening-operator">
+                    <span>Operador responsável</span>
+                    <strong id="operadorAbertura">—</strong>
+                </div>
+                <button type="submit" class="btn-caixa-primary" id="btnAbrirCaixa">Abrir caixa</button>
+            </form>
+        </section>
+
+        <section class="caixa-section" id="secaoAtual" hidden aria-labelledby="tituloCaixaAtual">
+            <div class="section-heading current-heading">
+                <div>
+                    <h2 id="tituloCaixaAtual">Sessão atual <span id="numeroCaixa"></span></h2>
+                    <p>Operador: <strong id="operadorAtual"></strong> · Aberto em <span id="dataAbertura"></span></p>
+                </div>
+                <span class="status-badge status-open">ABERTO</span>
+            </div>
+
+            <div class="metrics-grid" id="indicadoresCaixa"></div>
+
+            <div class="subsection-heading">
+                <div>
+                    <h3>Vendas por forma de pagamento</h3>
+                    <p>PIX e cartões são recebimentos, mas não compõem o dinheiro físico da gaveta.</p>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="stock-table payment-table">
+                    <thead>
+                        <tr><th>Forma de pagamento</th><th>Vendas</th><th>Total recebido</th><th>Composição</th></tr>
+                    </thead>
+                    <tbody id="resumoPagamentos"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="caixa-section" id="secaoMovimentacoes" hidden aria-labelledby="tituloMovimentacoes">
+            <div class="section-heading">
+                <div>
+                    <h2 id="tituloMovimentacoes">Movimentações do expediente</h2>
+                    <p>Os lançamentos são registrados com operador e horário e não podem ser alterados.</p>
+                </div>
+            </div>
+            <form id="formMovimentacao" class="caixa-form movement-form">
+                <label for="tipoMovimentacao">Tipo
+                    <select id="tipoMovimentacao" name="tipo" required>
+                        <option value="SUPRIMENTO">Suprimento</option>
+                        <option value="SANGRIA">Sangria</option>
+                        <option value="DESPESA">Despesa</option>
+                    </select>
+                </label>
+                <label for="valorMovimentacao">Valor
+                    <input type="number" id="valorMovimentacao" name="valor" min="0.01" max="9999999999.99" step="0.01" required>
+                </label>
+                <label id="campoCategoria" for="categoriaMovimentacao" hidden>Categoria da despesa
+                    <input type="text" id="categoriaMovimentacao" name="categoria" maxlength="80" placeholder="Ex.: material de limpeza">
+                </label>
+                <label class="movement-description" for="descricaoMovimentacao" id="rotuloDescricao">Descrição ou justificativa
+                    <input type="text" id="descricaoMovimentacao" name="descricao" maxlength="255" placeholder="Informe o motivo da movimentação" required>
+                </label>
+                <button type="submit" class="btn-caixa-primary" id="btnRegistrarMovimentacao">Registrar movimentação</button>
+            </form>
+
+            <div class="subsection-heading movement-history-heading">
+                <div>
+                    <h3>Histórico de movimentações</h3>
+                    <p>Consulte todos os lançamentos da sessão com filtros por tipo e período.</p>
+                </div>
+                <form id="filtrosMovimentacoes" class="movement-filters">
+                    <label for="filtroTipo">Tipo
+                        <select id="filtroTipo" name="tipo">
+                            <option value="">Todos</option>
+                            <option value="SUPRIMENTO">Suprimento</option>
+                            <option value="SANGRIA">Sangria</option>
+                            <option value="DESPESA">Despesa</option>
+                        </select>
+                    </label>
+                    <label for="filtroInicio">De
+                        <input type="date" id="filtroInicio" name="inicio">
+                    </label>
+                    <label for="filtroFim">Até
+                        <input type="date" id="filtroFim" name="fim">
+                    </label>
+                    <button type="submit" class="btn-caixa-secondary">Filtrar</button>
+                </form>
+            </div>
+            <div class="table-container">
+                <table class="stock-table">
+                    <thead>
+                        <tr><th>Data e hora</th><th>Tipo</th><th>Descrição</th><th>Categoria</th><th>Responsável</th><th class="amount-cell">Valor</th></tr>
+                    </thead>
+                    <tbody id="tabelaMovimentacoes"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="caixa-section close-section" id="secaoFechamento" hidden aria-labelledby="tituloFechamento">
+            <div class="section-heading">
+                <div>
+                    <h2 id="tituloFechamento">Conferência e fechamento</h2>
+                    <p>Conte os valores efetivamente conferidos. Cada forma de pagamento deve ser informada.</p>
+                </div>
+            </div>
+            <form id="formFechamento">
+                <div id="camposConferencia" class="count-grid"></div>
+                <button type="submit" class="btn-caixa-danger" id="btnRevisarFechamento">Revisar fechamento</button>
+            </form>
+        </section>
+
+        <section class="caixa-section" aria-labelledby="tituloHistorico">
+            <div class="section-heading">
+                <div>
+                    <h2 id="tituloHistorico">Histórico de caixas</h2>
+                    <p>Consulte sessões anteriores, diferenças e detalhes do fechamento.</p>
+                </div>
+                <button type="button" class="btn-caixa-secondary" id="atualizarHistorico">Atualizar</button>
+            </div>
+            <div class="table-container">
+                <table class="stock-table history-table">
+                    <thead>
+                        <tr><th>Caixa</th><th>Operador</th><th>Abertura</th><th>Fechamento</th><th>Valor inicial</th><th>Total vendido</th><th>Saldo final</th><th>Diferença</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody id="tabelaHistorico"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="modalConferencia" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tituloConferencia">
+        <div class="modal-content caixa-modal">
+            <div class="modal-header">
+                <h3 id="tituloConferencia">Confirme o fechamento do caixa</h3>
+                <button type="button" class="btn-close-modal" id="fecharConferencia" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="resumoConferencia"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-caixa-secondary" id="imprimirRelatorioRevisao">Imprimir resumo</button>
+                <button type="button" class="btn-caixa-secondary" id="voltarConferencia">Voltar e revisar</button>
+                <button type="button" class="btn-caixa-danger" id="confirmarFechamento">Confirmar fechamento</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalDetalhes" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tituloDetalhes">
+        <div class="modal-content caixa-modal">
+            <div class="modal-header">
+                <h3 id="tituloDetalhes">Detalhes do caixa</h3>
+                <button type="button" class="btn-close-modal" id="fecharDetalhes" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="conteudoDetalhes"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-caixa-secondary" id="imprimirResumo">Imprimir resumo não fiscal</button>
+                <button type="button" class="btn-caixa-primary" id="fecharDetalhesBotao">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/caixa.js"></script>
+</body>
+</html>

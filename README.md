@@ -31,6 +31,11 @@ PORT=3000
 ```
 
 > **Nota:** As tabelas, categorias e produtos iniciais de cafeteria são criados automaticamente na primeira inicialização do servidor.
+> O Caixa não é aberto automaticamente: abra uma sessão na página **Caixa** antes de registrar vendas no PDV.
+
+### Controle de Caixa
+
+A página Caixa registra abertura, suprimentos, sangrias, despesas em dinheiro e conferência de fechamento por forma de pagamento. As vendas do PDV são vinculadas à sessão aberta; sem sessão, a venda é recusada. PIX e cartões são exibidos no resumo financeiro, mas não compõem o saldo físico da gaveta.
 
 ### 3. Instalar Dependências
 No terminal, execute:

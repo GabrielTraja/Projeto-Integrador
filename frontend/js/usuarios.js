@@ -23,7 +23,7 @@ async function carregarDados() {
         console.error('Erro ao carregar usuários:', erro);
         const tbody = document.querySelector('.stock-table tbody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444; padding: 20px;">Erro ao carregar usuários: ${escapeHtml(erro.message)}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #502818; padding: 20px;">Erro ao carregar usuários: ${escapeHtml(erro.message)}</td></tr>`;
         }
     }
 }
@@ -35,7 +35,7 @@ function mostrar() {
     const podeGerenciar = Number(auth.obterUsuario()?.id_tipo_usuario) === 1;
 
     if (!listaItens || listaItens.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color: #64748b;">Nenhum usuário encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color: #502818;">Nenhum usuário encontrado.</td></tr>`;
         return;
     }
 
@@ -58,9 +58,9 @@ function mostrar() {
                 </td>
                 <td class="product-name">
                     ${escapeHtml(item.nome)}
-                    <br><span style="font-size: 0.8rem; color: #64748b; font-weight: normal;">Login: ${escapeHtml(item.login)}</span>
+                    <br><span style="font-size: 0.8rem; color: #502818; font-weight: normal;">Login: ${escapeHtml(item.login)}</span>
                 </td>
-                <td>${item.email ? escapeHtml(item.email) : '<span style="color:#94a3b8">Não informado</span>'}</td>
+                <td>${item.email ? escapeHtml(item.email) : '<span style="color:#502818">Não informado</span>'}</td>
                 <td><span class="user-role ${roleClass}">${escapeHtml(item.tipo_nome || 'Operador')}</span></td>
                 <td>
                     <span class="status ${ehAtivo ? 'status-ok' : 'status-warning'}">
@@ -150,23 +150,23 @@ function editar(id) {
                 <form id="formEditarUsuario" onsubmit="editarDados(${id}, event)">
                     <div style="display:flex; flex-direction:column; gap:12px;">
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Nome Completo:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Nome Completo:</label>
                             <input type="text" id="editNome" class="form-control" required>
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Login de Acesso:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Login de Acesso:</label>
                             <input type="text" id="editLogin" class="form-control" required>
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">E-mail:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">E-mail:</label>
                             <input type="email" id="editEmail" class="form-control">
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Telefone:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Telefone:</label>
                             <input type="text" id="editTelefone" class="form-control">
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Perfil de Acesso:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Perfil de Acesso:</label>
                             <select id="editTipo" class="form-control" required>
                                 <option value="1">Administrador</option>
                                 <option value="2">Gerente</option>
@@ -175,14 +175,14 @@ function editar(id) {
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Status:</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Status:</label>
                             <select id="editStatus" class="form-control">
                                 <option value="ATIVO">Ativo</option>
                                 <option value="INATIVO">Inativo</option>
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#334155;">Nova Senha (deixe em branco para manter a atual):</label>
+                            <label style="font-size:0.85rem; font-weight:600; color:#502818;">Nova Senha (deixe em branco para manter a atual):</label>
                             <input type="password" id="editSenha" class="form-control" placeholder="••••••••">
                         </div>
                         <div style="display:flex; gap:10px; margin-top:15px;">

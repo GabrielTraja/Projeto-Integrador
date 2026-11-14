@@ -13,7 +13,7 @@
 
 /* Estilização individual de cada Cartão */
 .card-item {
-  background-color: #ffffff;
+  background-color: #FFFFFF;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 28px 24px;
@@ -34,7 +34,7 @@
 .card-icon {
   width: 64px;
   height: 64px;
-  background-color: var(--sidebar-bg);
+  background-color: rgba(248, 120, 8, 0.12);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -68,8 +68,8 @@
 /* Botão de Acesso */
 .btn-card {
   width: 100%;
-  background-color: var(--primary);
-  color: #ffffff;
+  background-color: var(--accent);
+  color: #FFFFFF;
   border: none;
   padding: 11px 16px;
   border-radius: var(--radius-sm);
@@ -83,7 +83,7 @@
 }
 
 .btn-card:hover {
-  background-color: var(--primary-hover);
+  background-color: var(--accent-hover);
 }
 
 .settings-section {
@@ -149,7 +149,7 @@
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: #FFFFFF;
   color: var(--text-main);
   font: inherit;
 }
@@ -157,7 +157,7 @@
 .settings-grid input:focus,
 .settings-grid select:focus,
 .settings-footer-label input:focus {
-  outline: 2px solid rgba(114, 47, 55, 0.2);
+  outline: 2px solid rgba(248, 120, 8, 0.18);
   border-color: var(--primary);
 }
 
@@ -215,21 +215,21 @@
 }
 
 .btn-settings-primary {
-  background: var(--primary);
-  color: #fff;
+  background: var(--accent);
+  color: #FFFFFF;
 }
 
 .btn-settings-primary:hover {
-  background: var(--primary-hover);
+  background: var(--accent-hover);
 }
 
 .btn-settings-secondary {
-  background: var(--sidebar-bg);
+  background: var(--bg-card-alt);
   color: var(--primary);
 }
 
 .btn-settings-secondary:hover {
-  background: var(--sidebar-hover);
+  background: rgba(248, 120, 8, 0.12);
 }
 
 .btn-settings-primary:disabled,
@@ -246,13 +246,13 @@
 }
 
 .settings-message-success {
-  background: #ecfdf5;
-  color: #166534;
+  background: rgba(24, 88, 40, 0.12);
+  color: #185828;
 }
 
 .settings-message-erro {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: rgba(248, 120, 8, 0.12);
+  color: #502818;
 }
 
 @media (max-width: 700px) {
