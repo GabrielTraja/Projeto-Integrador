@@ -2,6 +2,22 @@ const ProdutoModel = require('../models/produtoModel');
 const CategoriaModel = require('../models/categoriaModel');
 const { salvarImagemProduto, removerImagemProduto } = require('../utils/productImage');
 
+const DIAS_ALERTA_VALIDADE = 3;
+
+function normalizarBooleano(valor) {
+    if (typeof valor === 'boolean') return valor;
+    if (valor === 1 || valor === '1' || valor === 'true') return true;
+    if (valor === 0 || valor === '0' || valor === 'false' || valor === null || valor === undefined || valor === '') return false;
+    return null;
+}
+
+function dataValidaISO(valor) {
+    if (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
+    const [ano, mes, dia] = valor.split('-').map(Number);
+    const data = new Date(Date.UTC(ano, mes - 1, dia));
+    return data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia;
+}
+
 function validarProduto(dados, atual = {}) {
     const nome = dados.nome !== undefined ? dados.nome : atual.nome;
     if (typeof nome !== 'string' || !nome.trim()) {
@@ -41,6 +57,25 @@ function validarProduto(dados, atual = {}) {
     }
     valores.status = status;
 
+    const perecivelInformado = dados.perecivel !== undefined ? dados.perecivel : atual.perecivel;
+    const perecivel = normalizarBooleano(perecivelInformado);
+    if (perecivel === null) {
+        return { erro: 'Indicação de produto perecível inválida.' };
+    }
+    valores.perecivel = perecivel;
+    if (perecivel) {
+        const validade = dados.data_validade !== undefined ? dados.data_validade : atual.data_validade;
+        if (!validade) {
+            return { erro: 'Data de validade é obrigatória para produtos perecíveis.' };
+        }
+        if (!dataValidaISO(validade)) {
+            return { erro: 'Data de validade inválida.' };
+        }
+        valores.data_validade = validade;
+    } else {
+        valores.data_validade = null;
+    }
+
     const categoria = dados.id_categoria !== undefined ? dados.id_categoria : atual.id_categoria;
     if (categoria !== undefined && categoria !== null && categoria !== '') {
         const idCategoria = Number(categoria);
@@ -66,6 +101,16 @@ const produtoController = {
         } catch (error) {
             console.error('Erro ao listar produtos:', error);
             res.status(500).json({ erro: 'Erro interno ao listar produtos.' });
+        }
+    },
+
+    async alertasValidade(req, res) {
+        try {
+            const produtos = await ProdutoModel.listarProximosVencimento(DIAS_ALERTA_VALIDADE);
+            res.json({ dias: DIAS_ALERTA_VALIDADE, produtos });
+        } catch (error) {
+            console.error('Erro ao consultar validade dos produtos:', error);
+            res.status(500).json({ erro: 'Erro ao consultar validade dos produtos.' });
         }
     },
 
@@ -215,3 +260,4 @@ const produtoController = {
 };
 
 module.exports = produtoController;
+module.exports.validarProduto = validarProduto;

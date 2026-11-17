@@ -5,6 +5,7 @@ const { exigirAutenticacao, exigirTipos } = require('../middleware/auth');
 
 // Rotas de Produtos
 router.get('/', exigirAutenticacao, produtoController.listar);
+router.get('/alertas/validade', exigirAutenticacao, produtoController.alertasValidade);
 router.get('/:id', exigirAutenticacao, produtoController.buscarPorId);
 router.post('/', exigirAutenticacao, exigirTipos(1, 2, 4), produtoController.criar);
 router.put('/:id', exigirAutenticacao, exigirTipos(1, 2, 4), produtoController.atualizar);

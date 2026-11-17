@@ -57,6 +57,7 @@ function mostrar() {
                 <td class="product-name">
                     ${escapeHtml(item.nome)}
                     ${item.codigo_barras ? `<br><span class="product-code">Cód: ${escapeHtml(item.codigo_barras)}</span>` : ''}
+                    ${renderizarTagValidade(item)}
                 </td>
                 <td>${escapeHtml(item.unidade_medida || 'UN')}</td>
                 <td>${escapeHtml(item.categoria_nome || 'Geral')}</td>
@@ -80,6 +81,13 @@ function mostrar() {
     tbody.innerHTML = html;
 }
 
+function renderizarTagValidade(item) {
+    if (!Number(item.perecivel) || !item.data_validade) return '';
+    const dias = validadeProdutos.diasAte(item.data_validade);
+    const classe = dias < 0 ? 'validade-vencido' : dias <= validadeProdutos.DIAS_ALERTA ? 'validade-alerta' : '';
+    return `<br><span class="validade-tag ${classe}" title="${escapeHtml(validadeProdutos.descreverPrazo(dias))}">Val: ${escapeHtml(validadeProdutos.formatarData(item.data_validade))}</span>`;
+}
+
 // 3. Função salvarDados(): Cadastra ou atualiza o produto via formulário
 async function salvarDados(event) {
     if (event) event.preventDefault();
@@ -95,9 +103,16 @@ async function salvarDados(event) {
     const estoque_minimo = document.getElementById('estoqueMinimo')?.value;
     const codigo_barras = document.getElementById('codigoBarras')?.value?.trim() || null;
     const descricao = document.getElementById('descricao')?.value?.trim() || null;
+    const perecivel = Boolean(document.getElementById('produtoPerecivel')?.checked);
+    const data_validade = perecivel ? (document.getElementById('dataValidade')?.value || null) : null;
 
     if (!nome || !preco_venda) {
         alert('Por favor, preencha o Nome do Produto e o Preço de Venda.');
+        return;
+    }
+    if (perecivel && !data_validade) {
+        alert('Informe a data de validade do produto perecível.');
+        document.getElementById('dataValidade')?.focus();
         return;
     }
 
@@ -111,6 +126,8 @@ async function salvarDados(event) {
         estoque_atual: parseFloat(estoque_atual) || 0,
         estoque_minimo: parseFloat(estoque_minimo) || 0,
         descricao,
+        perecivel,
+        data_validade,
         status: 'ATIVO'
     };
     if (imagemProdutoDataUrl) {
@@ -165,6 +182,12 @@ async function carregarParaEdicao(id) {
         if (document.getElementById('descricao')) {
             document.getElementById('descricao').value = produto.descricao || '';
         }
+        const checkboxPerecivel = document.getElementById('produtoPerecivel');
+        if (checkboxPerecivel) {
+            checkboxPerecivel.checked = Boolean(Number(produto.perecivel));
+            document.getElementById('dataValidade').value = produto.data_validade || '';
+            atualizarCampoValidade();
+        }
         if (produto.foto) {
             atualizarPreviaImagem(safeImageUrl(produto.foto));
             const removerImagem = document.getElementById('removerImagemProduto');
@@ -183,6 +206,33 @@ async function carregarParaEdicao(id) {
         alert(`Erro ao carregar dados do produto: ${erro.message}`);
         window.location.href = 'controleEstoque.html';
     }
+}
+
+function atualizarCampoValidade() {
+    const checkbox = document.getElementById('produtoPerecivel');
+    const campo = document.getElementById('validadeCampo');
+    const input = document.getElementById('dataValidade');
+    const aviso = document.getElementById('validadeAviso');
+    if (!checkbox || !campo || !input) return;
+
+    campo.hidden = !checkbox.checked;
+    input.required = checkbox.checked;
+
+    if (aviso) {
+        const textoPadrao = `Você será alertado quando faltarem ${validadeProdutos.DIAS_ALERTA} dias ou menos para o vencimento.`;
+        aviso.textContent = checkbox.checked && input.value
+            ? `${validadeProdutos.descreverPrazo(validadeProdutos.diasAte(input.value))}. ${textoPadrao}`
+            : textoPadrao;
+    }
+}
+
+function configurarCampoValidade() {
+    const checkbox = document.getElementById('produtoPerecivel');
+    const input = document.getElementById('dataValidade');
+    if (!checkbox || !input) return;
+    checkbox.onchange = atualizarCampoValidade;
+    input.oninput = atualizarCampoValidade;
+    atualizarCampoValidade();
 }
 
 function atualizarPreviaImagem(src) {
@@ -313,6 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const formProduto = document.querySelector('.product-form');
     if (formProduto) {
         configurarCampoImagem();
+        configurarCampoValidade();
         await carregarCategoriasSelect();
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('id');

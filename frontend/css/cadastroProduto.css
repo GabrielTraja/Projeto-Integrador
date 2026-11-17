@@ -138,6 +138,45 @@
   background-color: rgba(248, 120, 8, 0.12);
 }
 
+/* Controle de validade (produtos perecíveis) */
+.validade-group {
+  padding: 14px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-main);
+}
+
+.checkbox-perecivel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.checkbox-perecivel input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.validade-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+  margin-top: 6px;
+}
+
+.validade-campo[hidden] {
+  display: none !important;
+}
+
+.validade-campo .inputProduto {
+  background-color: var(--bg-card);
+}
+
 /* Área e Botão de Enviar */
 .form-actions {
   margin-top: 10px;

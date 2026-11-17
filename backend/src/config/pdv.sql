@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS produto (
     unidade_medida VARCHAR(10) NOT NULL DEFAULT 'UN',
     status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
     foto VARCHAR(255),
+    perecivel TINYINT(1) NOT NULL DEFAULT 0,
+    data_validade DATE NULL,
     id_categoria INT NOT NULL,
     data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -466,4 +468,5 @@ CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_data', 'd
 CALL criar_indice_se_ausente('movimentacao_estoque', 'idx_movimentacao_produto', 'id_produto');
 CALL criar_indice_se_ausente('caixa_movimentacao', 'idx_caixa_movimentacao_caixa_data', 'id_caixa');
 CALL criar_indice_se_ausente('produto', 'idx_produto_nome', 'nome');
+CALL criar_indice_se_ausente('produto', 'idx_produto_validade', 'data_validade');
 DROP PROCEDURE criar_indice_se_ausente;

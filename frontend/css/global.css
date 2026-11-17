@@ -624,6 +624,159 @@ body.sidebar-collapsed .pdv-content {
   color: var(--primary);
 }
 
+/* ==========================================================================
+   VALIDADE DE PRODUTOS PERECÍVEIS
+   ========================================================================== */
+.validade-tag {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background-color: rgba(32, 16, 8, 0.06);
+  color: var(--text-muted);
+}
+
+.validade-tag.validade-alerta {
+  background-color: rgba(248, 120, 8, 0.16);
+  color: #502818;
+}
+
+.validade-tag.validade-vencido {
+  background-color: #502818;
+  color: #FFFFFF;
+}
+
+/* Popup de alerta de vencimento */
+.alerta-validade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(32, 16, 8, 0.45);
+}
+
+.alerta-validade-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border-top: 5px solid var(--accent);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.alerta-validade-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 10px;
+}
+
+.alerta-validade-header h2 {
+  font-size: 1.15rem;
+  color: var(--primary);
+}
+
+.alerta-validade-header p {
+  margin-top: 4px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.alerta-validade-fechar {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.alerta-validade-fechar:hover {
+  background: var(--bg-main);
+  color: var(--primary);
+}
+
+.alerta-validade-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
+  overflow-y: auto;
+}
+
+.alerta-validade-lista li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.alerta-validade-lista li:last-child {
+  border-bottom: none;
+}
+
+.alerta-validade-produto strong {
+  display: block;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.alerta-validade-produto span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.alerta-validade-lista .validade-tag {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.alerta-validade-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border-light);
+}
+
+.alerta-validade-acoes a,
+.alerta-validade-acoes button {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+
+.alerta-validade-acoes a {
+  background: var(--bg-main);
+  color: var(--secondary);
+}
+
+.alerta-validade-acoes button {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+.alerta-validade-acoes button:hover {
+  background: var(--accent-hover);
+}
+
 /* Responsividade básica */
 @media (max-width: 900px) {
   .sidebar {

@@ -16,6 +16,8 @@ const ProdutoModel = {
                 p.unidade_medida,
                 p.status,
                 p.foto,
+                p.perecivel,
+                DATE_FORMAT(p.data_validade, '%Y-%m-%d') AS data_validade,
                 p.id_categoria,
                 p.data_cadastro,
                 c.nome AS categoria_nome
@@ -57,6 +59,8 @@ const ProdutoModel = {
                 p.unidade_medida,
                 p.status,
                 p.foto,
+                p.perecivel,
+                DATE_FORMAT(p.data_validade, '%Y-%m-%d') AS data_validade,
                 p.id_categoria,
                 p.data_cadastro,
                 c.nome AS categoria_nome
@@ -81,13 +85,15 @@ const ProdutoModel = {
             unidade_medida = 'UN',
             status = 'ATIVO',
             foto = null,
+            perecivel = false,
+            data_validade = null,
             id_categoria = 1
         } = dados;
 
         const sql = `
             INSERT INTO produto 
-            (codigo_barras, nome, descricao, marca, preco_custo, preco_venda, estoque_atual, estoque_minimo, unidade_medida, status, foto, id_categoria)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (codigo_barras, nome, descricao, marca, preco_custo, preco_venda, estoque_atual, estoque_minimo, unidade_medida, status, foto, perecivel, data_validade, id_categoria)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const [result] = await db.query(sql, [
             codigo_barras || null,
@@ -101,6 +107,8 @@ const ProdutoModel = {
             (unidade_medida || 'UN').toUpperCase(),
             status || 'ATIVO',
             foto || null,
+            perecivel ? 1 : 0,
+            perecivel ? (data_validade || null) : null,
             parseInt(id_categoria, 10) || 1
         ]);
 
@@ -120,6 +128,8 @@ const ProdutoModel = {
             unidade_medida = 'UN',
             status = 'ATIVO',
             foto = null,
+            perecivel = false,
+            data_validade = null,
             id_categoria = 1
         } = dados;
 
@@ -136,6 +146,8 @@ const ProdutoModel = {
                 unidade_medida = ?,
                 status = ?,
                 foto = ?,
+                perecivel = ?,
+                data_validade = ?,
                 id_categoria = ?
             WHERE id_produto = ?
         `;
@@ -151,11 +163,36 @@ const ProdutoModel = {
             (unidade_medida || 'UN').toUpperCase(),
             status || 'ATIVO',
             foto || null,
+            perecivel ? 1 : 0,
+            perecivel ? (data_validade || null) : null,
             parseInt(id_categoria, 10) || 1,
             id
         ]);
 
         return result.affectedRows > 0;
+    },
+
+    // Produtos perecíveis ativos, com estoque, vencidos ou que vencem nos próximos `dias` dias
+    async listarProximosVencimento(dias = 3) {
+        const sql = `
+            SELECT
+                p.id_produto,
+                p.nome,
+                p.codigo_barras,
+                p.estoque_atual,
+                p.unidade_medida,
+                DATE_FORMAT(p.data_validade, '%Y-%m-%d') AS data_validade,
+                DATEDIFF(p.data_validade, CURDATE()) AS dias_restantes
+            FROM produto p
+            WHERE p.perecivel = 1
+              AND p.status = 'ATIVO'
+              AND p.data_validade IS NOT NULL
+              AND p.estoque_atual > 0
+              AND p.data_validade <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
+            ORDER BY p.data_validade ASC, p.nome ASC
+        `;
+        const [rows] = await db.query(sql, [dias]);
+        return rows;
     },
 
     async deletar(id) {

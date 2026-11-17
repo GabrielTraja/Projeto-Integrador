@@ -118,6 +118,8 @@ async function initDatabase() {
                 unidade_medida VARCHAR(10) NOT NULL DEFAULT 'UN',
                 status ENUM('ATIVO', 'INATIVO') NOT NULL DEFAULT 'ATIVO',
                 foto VARCHAR(255) NULL,
+                perecivel TINYINT(1) NOT NULL DEFAULT 0,
+                data_validade DATE NULL,
                 id_categoria INT NOT NULL,
                 data_cadastro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT fk_produto_categoria
@@ -133,6 +135,12 @@ async function initDatabase() {
         const prodColNames = prodCols.map(c => c.Field);
         if (!prodColNames.includes('foto')) {
             await connection.query(`ALTER TABLE produto ADD COLUMN foto VARCHAR(255) NULL AFTER status`);
+        }
+        if (!prodColNames.includes('perecivel')) {
+            await connection.query(`ALTER TABLE produto ADD COLUMN perecivel TINYINT(1) NOT NULL DEFAULT 0 AFTER foto`);
+        }
+        if (!prodColNames.includes('data_validade')) {
+            await connection.query(`ALTER TABLE produto ADD COLUMN data_validade DATE NULL AFTER perecivel`);
         }
         const constraintsProduto = [
             ['chk_produto_preco_custo', 'CHECK (preco_custo >= 0)'],
@@ -516,7 +524,8 @@ async function initDatabase() {
             ['movimentacao_caixa', 'idx_movimentacao_caixa_data', 'data_hora'],
             ['movimentacao_caixa', 'idx_movimentacao_caixa_id_caixa', 'id_caixa'],
             ['caixa_movimentacao', 'idx_caixa_movimentacao_caixa_data', 'id_caixa'],
-            ['produto', 'idx_produto_nome', 'nome']
+            ['produto', 'idx_produto_nome', 'nome'],
+            ['produto', 'idx_produto_validade', 'data_validade']
         ];
         for (const [table, index, column] of indices) {
             const [existing] = await connection.query(`
