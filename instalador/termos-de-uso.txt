@@ -1,0 +1,75 @@
+﻿TERMOS DE USO E LICENÇA - NEXGUSTO PDV
+
+[REVISE ESTE TEXTO COM UM PROFISSIONAL JURÍDICO ANTES DE DISTRIBUIR.
+ Substitua os campos entre colchetes pelos seus dados.]
+
+Fornecedor: [NOME / RAZÃO SOCIAL] - CNPJ/CPF: [NÚMERO]
+Contato para suporte e licenças: [E-MAIL] / [TELEFONE OU WHATSAPP]
+
+1. OBJETO
+Este documento regula o uso do software NexGusto PDV ("Sistema"), destinado
+ao controle interno de vendas, caixa, estoque e produtos de estabelecimentos
+comerciais. A instalação do Sistema implica a aceitação destes termos.
+
+2. PERÍODO DE TESTE
+2.1. Na primeira instalação em um computador, o Sistema pode ser utilizado
+     gratuitamente, com todas as funções, por 30 (trinta) dias corridos.
+2.2. O período de teste é concedido uma única vez por computador. Desinstalar e
+     reinstalar o Sistema não reinicia o período de teste.
+2.3. Ao final do período de teste, sem uma licença ativa, o Sistema entra em
+     MODO SOMENTE LEITURA: será possível entrar no Sistema, consultar
+     informações e relatórios, mas não registrar vendas, abrir caixa ou alterar
+     cadastros. Um caixa aberto antes do término poderá concluir suas vendas e
+     ser fechado normalmente.
+
+3. LICENÇA DE USO
+3.1. A licença é pessoal, intransferível e vinculada a um único computador,
+     identificado pelo "código da máquina" exibido no Sistema.
+3.2. Planos disponíveis: Mensal, Anual e Vitalícia. Os planos Mensal e Anual
+     valem até a data indicada na licença; a licença Vitalícia não expira.
+3.3. Ao término de uma licença Mensal ou Anual não renovada, aplica-se o modo
+     somente leitura descrito no item 2.3.
+3.4. A troca de computador deve ser solicitada ao suporte, que emitirá uma nova
+     chave para o novo código de máquina.
+
+4. ATUALIZAÇÕES
+4.1. Cada licença informa até que data o cliente tem direito a receber novas
+     versões ("atualizações até").
+4.2. Versões lançadas após essa data exigem a renovação do plano de
+     atualizações. A versão já instalada continua funcionando conforme a
+     licença contratada.
+4.3. Antes de cada atualização, o instalador realiza uma cópia de segurança
+     automática dos dados.
+
+5. DADOS DO CLIENTE E LGPD
+5.1. Todos os dados cadastrados (vendas, produtos, clientes, usuários) são de
+     propriedade do cliente e ficam armazenados apenas no computador onde o
+     Sistema está instalado. O fornecedor não coleta nem acessa esses dados.
+5.2. O término da licença nunca apaga dados nem impede sua consulta ou
+     exportação.
+5.3. O cliente é o controlador dos dados pessoais que cadastrar no Sistema e é
+     responsável pelo seu tratamento conforme a Lei nº 13.709/2018 (LGPD).
+5.4. O Sistema gera cópias de segurança diárias em
+     C:\ProgramData\NexGusto\backups. Recomenda-se copiar periodicamente essa
+     pasta para outro dispositivo (pen drive, nuvem).
+
+6. AVISO FISCAL
+O Sistema destina-se ao controle interno do estabelecimento e NÃO emite
+documentos fiscais (NFC-e, SAT, cupom fiscal), salvo se expressamente indicado
+em versão futura. O cliente continua responsável por cumprir suas obrigações
+fiscais com um emissor homologado.
+
+7. RESTRIÇÕES
+É proibido: copiar, revender, sublicenciar ou distribuir o Sistema; alterar,
+descompilar ou contornar o controle de licenças; utilizar uma licença em mais
+computadores do que o contratado.
+
+8. GARANTIA E RESPONSABILIDADE
+O Sistema é fornecido no estado em que se encontra. O fornecedor prestará
+suporte conforme o plano contratado, mas não se responsabiliza por perdas
+decorrentes de falhas de hardware, falta de cópias de segurança, uso indevido
+ou alterações feitas por terceiros.
+
+9. FORO
+Fica eleito o foro da comarca de [CIDADE/UF] para dirimir questões
+decorrentes destes termos, respeitados os direitos do consumidor.

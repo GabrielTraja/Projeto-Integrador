@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (title.includes('pdv')) {
             btn.onclick = () => window.location.href = 'pdv.html';
         } else if (title.includes('caixa')) {
-            btn.onclick = () => alert('Módulo de Abertura/Fechamento de Caixa em desenvolvimento para a próxima fase.');
+            btn.onclick = () => window.location.href = 'caixa.html';
         }
     });
 

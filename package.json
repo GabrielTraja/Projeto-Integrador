@@ -4,12 +4,21 @@
   "description": "Sistema de Ponto de Venda (PDV) - Frontend e Backend Integrados",
   "main": "backend/server.js",
   "scripts": {
+    "postinstall": "npm --prefix backend install",
     "start": "npm --prefix backend start",
     "dev": "npm --prefix backend run dev",
-    "init-db": "node backend/src/config/initDb.js"
+    "test": "npm --prefix backend test",
+    "init-db": "node backend/src/config/initDb.js",
+    "licenca": "node ferramentas/licencas/gerar-licenca.js",
+    "instalador": "powershell -ExecutionPolicy Bypass -File instalador/preparar.ps1"
   },
-  "keywords": ["pdv", "express", "mysql", "javascript", "fullstack"],
+  "keywords": [
+    "pdv",
+    "express",
+    "mysql",
+    "javascript",
+    "fullstack"
+  ],
   "author": "",
   "license": "ISC"
 }
-

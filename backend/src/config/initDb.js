@@ -1,11 +1,7 @@
 const mysql = require('mysql2/promise');
-const path = require('path');
-const dotenv = require('dotenv');
 const { hashPassword } = require('../utils/password');
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-dotenv.config();
+require('./ambiente');
 
 async function initDatabase() {
     let connection;
@@ -13,6 +9,7 @@ async function initDatabase() {
         // Conexão inicial sem banco selecionado para garantir criação do banco `pdv`
         connection = await mysql.createConnection({
             host: process.env.DB_HOST || 'localhost',
+            port: Number(process.env.DB_PORT) || 3306,
             user: process.env.DB_USER || 'root',
             password: process.env.DB_PASS || '',
             multipleStatements: true

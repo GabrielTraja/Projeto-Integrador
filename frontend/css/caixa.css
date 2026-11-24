@@ -1,10 +1,10 @@
 .caixa-content {
-  max-width: 1600px;
+  max-width: 2000px;
 }
 
 .caixa-section {
-  margin-bottom: 24px;
-  padding: 24px;
+  margin-bottom: var(--grid-gap);
+  padding: clamp(18px, 1.6vw, 32px);
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -72,13 +72,13 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
 .metric-card {
   min-width: 0;
-  padding: 18px;
+  padding: clamp(14px, 1.8vh, 20px) clamp(14px, 1.2vw, 20px);
   background: var(--bg-card-alt);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -146,6 +146,7 @@
 
 .opening-form {
   grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  max-width: 900px;
 }
 
 .opening-operator {
@@ -261,7 +262,7 @@
 
 .count-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(clamp(280px, 24vw, 420px), 1fr));
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -285,7 +286,13 @@
 }
 
 .history-table {
-  min-width: 1100px;
+  /* largura natural das colunas; rolagem interna só quando não couber */
+  min-width: 0;
+}
+
+.history-table td,
+.payment-table td:nth-child(3) {
+  white-space: nowrap;
 }
 
 .btn-view-close {
@@ -383,6 +390,28 @@
   margin-top: 14px;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* Monitores amplos: os 8 indicadores em uma única linha */
+@media (min-width: 2200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+/* Telas de baixa altura (1366x768, 1280x720) */
+@media (max-height: 820px) {
+  .section-heading {
+    margin-bottom: 16px;
+  }
+
+  .subsection-heading {
+    margin: 20px 0 12px;
+  }
+
+  .count-field {
+    padding: 11px 14px;
+  }
 }
 
 @media (max-width: 1100px) {

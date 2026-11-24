@@ -2,7 +2,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
-const baseUploadsDirectory = path.resolve(__dirname, '../../uploads');
+const { uploadsDir: baseUploadsDirectory } = require('../config/ambiente');
 const produtosDirectory = path.resolve(baseUploadsDirectory, 'produtos');
 const usuariosDirectory = path.resolve(baseUploadsDirectory, 'usuarios');
 

@@ -40,6 +40,13 @@ const api = {
         }
     },
 
+    // Gravação recusada por licença expirada: abre a janela de licença
+    tratarLicencaBloqueada(json) {
+        if (json && json.codigo === 'LICENCA_BLOQUEADA' && window.licencaUI) {
+            window.licencaUI.abrir();
+        }
+    },
+
     cabecalhos(adicionais = {}) {
         const token = localStorage.getItem('pdv_token');
         return {
@@ -75,6 +82,7 @@ const api = {
             this.tratarSessaoExpirada(endpoint, resposta);
             const json = await resposta.json().catch(() => ({}));
             if (!resposta.ok) {
+                this.tratarLicencaBloqueada(json);
                 throw new Error(json.erro || `Erro HTTP ${resposta.status}`);
             }
             return json;
@@ -94,6 +102,7 @@ const api = {
             this.tratarSessaoExpirada(endpoint, resposta);
             const json = await resposta.json().catch(() => ({}));
             if (!resposta.ok) {
+                this.tratarLicencaBloqueada(json);
                 throw new Error(json.erro || `Erro HTTP ${resposta.status}`);
             }
             return json;
@@ -112,6 +121,7 @@ const api = {
             this.tratarSessaoExpirada(endpoint, resposta);
             const json = await resposta.json().catch(() => ({}));
             if (!resposta.ok) {
+                this.tratarLicencaBloqueada(json);
                 throw new Error(json.erro || `Erro HTTP ${resposta.status}`);
             }
             return json;

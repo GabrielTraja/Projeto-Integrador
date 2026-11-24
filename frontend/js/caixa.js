@@ -68,6 +68,7 @@ function renderizarCaixaAtual(caixa) {
         secaoFechamento.hidden = true;
         secaoAbertura.hidden = false;
         resumoCaixaAtual = null;
+        limparConferencia();
         return;
     }
 
@@ -107,15 +108,26 @@ function renderizarCaixaAtual(caixa) {
         </tr>
     `).join('') || '<tr><td colspan="4">Nenhuma forma de pagamento ativa.</td></tr>';
 
+    const containerConferencia = document.getElementById('camposConferencia');
+    // Só reaproveita valores digitados se ainda for a mesma sessão de caixa.
+    const mesmaSessao = containerConferencia.dataset.caixaId === String(caixa.id_caixa);
     const valoresDigitados = new Map(
-        [...document.querySelectorAll('#camposConferencia input[data-forma-id]')]
-            .filter(campo => campo.value !== '')
-            .map(campo => [campo.dataset.formaId, campo.value])
+        mesmaSessao
+            ? [...containerConferencia.querySelectorAll('input[data-forma-id]')]
+                .filter(campo => campo.value !== '')
+                .map(campo => [campo.dataset.formaId, campo.value])
+            : []
     );
-    document.getElementById('camposConferencia').innerHTML = caixa.pagamentos.map(pagamento => {
-        const esperado = formaEhDinheiro(pagamento.descricao)
+    containerConferencia.dataset.caixaId = String(caixa.id_caixa);
+    const formasConferencia = caixa.pagamentos.map(pagamento => ({
+        pagamento,
+        esperado: Number(formaEhDinheiro(pagamento.descricao)
             ? caixa.saldo_esperado_dinheiro
-            : pagamento.total_vendido;
+            : pagamento.total_vendido) || 0
+    }));
+    // Formas sem movimento (esperado 0,00) não exigem digitação: são conferidas automaticamente com 0,00.
+    const formasComMovimento = formasConferencia.filter(({ esperado }) => Math.round(esperado * 100) !== 0);
+    containerConferencia.innerHTML = formasComMovimento.map(({ pagamento, esperado }) => {
         return `
             <label class="count-field" for="conferencia-${Number(pagamento.id_forma_pagamento)}">
                 <span>${escapeHtml(pagamento.descricao)} <small>Esperado: ${moedaCaixa(esperado)}</small></span>
@@ -126,8 +138,8 @@ function renderizarCaixaAtual(caixa) {
                     placeholder="Valor conferido" required>
             </label>
         `;
-    }).join('');
-    for (const campo of document.querySelectorAll('#camposConferencia input[data-forma-id]')) {
+    }).join('') || '<p class="detail-note">Nenhuma forma de pagamento teve movimento nesta sessão. Não há valores a conferir.</p>';
+    for (const campo of containerConferencia.querySelectorAll('input[data-forma-id]')) {
         if (valoresDigitados.has(campo.dataset.formaId)) {
             campo.value = valoresDigitados.get(campo.dataset.formaId);
         }
@@ -189,22 +201,45 @@ async function atualizarHistorico() {
     }
 }
 
+function limparConferencia() {
+    const container = document.getElementById('camposConferencia');
+    container.innerHTML = '';
+    delete container.dataset.caixaId;
+    conferenciasPendentes = [];
+    relatorioFechamentoPendente = null;
+    document.getElementById('resumoConferencia').innerHTML = '';
+}
+
 function prepararRevisaoFechamento(evento) {
     evento.preventDefault();
+    if (!resumoCaixaAtual) return;
     const campos = [...document.querySelectorAll('#camposConferencia input[data-forma-id]')];
-    if (campos.length === 0 || campos.some(campo => campo.value === '' || !campo.validity.valid)) {
-        exibirMensagemCaixa('Informe um valor conferido válido para cada forma de pagamento.', 'error');
+    if (campos.some(campo => campo.value === '' || !campo.validity.valid)) {
+        exibirMensagemCaixa('Informe um valor conferido válido para cada forma de pagamento com movimento.', 'error');
         return;
     }
 
-    conferenciasPendentes = campos.map(campo => ({
-        id_forma_pagamento: Number(campo.dataset.formaId),
-        descricao: campo.dataset.formaNome,
-        valor_informado: Number(campo.value),
-        valor_esperado: Number(campo.dataset.esperado),
-        esperado: Number(campo.dataset.esperado),
-        diferenca: Math.round((Number(campo.value) - Number(campo.dataset.esperado)) * 100) / 100
-    }));
+    const camposPorForma = new Map(campos.map(campo => [Number(campo.dataset.formaId), campo]));
+    // Envia todas as formas ativas (exigido pelo backend); as sem movimento vão com 0,00.
+    conferenciasPendentes = resumoCaixaAtual.pagamentos.map(pagamento => {
+        const id = Number(pagamento.id_forma_pagamento);
+        const campo = camposPorForma.get(id);
+        const esperado = campo
+            ? Number(campo.dataset.esperado)
+            : Number(formaEhDinheiro(pagamento.descricao)
+                ? resumoCaixaAtual.saldo_esperado_dinheiro
+                : pagamento.total_vendido) || 0;
+        const informado = campo ? Number(campo.value) : 0;
+        return {
+            id_forma_pagamento: id,
+            descricao: pagamento.descricao,
+            valor_informado: informado,
+            valor_esperado: esperado,
+            esperado,
+            diferenca: Math.round((informado - esperado) * 100) / 100,
+            semMovimento: !campo
+        };
+    });
 
     const janelaRelatorio = window.open('', '_blank', 'width=1000,height=800');
     if (janelaRelatorio) {
@@ -236,12 +271,12 @@ function prepararRevisaoFechamento(evento) {
     const linhasResumo = itensResumo.map(([rotulo, valor]) => `
         <div class="review-row"><span>${escapeHtml(rotulo)}</span><strong>${moedaCaixa(valor)}</strong></div>
     `).join('');
-    const linhasConferencia = conferenciasPendentes.map(item => `
+    const linhasConferencia = conferenciasPendentes.filter(item => !item.semMovimento).map(item => `
         <div class="review-row">
             <span>${escapeHtml(item.descricao)} · Esperado ${moedaCaixa(item.esperado)}</span>
             <strong>${moedaCaixa(item.valor_informado)} <small class="${classeDiferenca(item.diferenca)}">(${item.diferenca > 0 ? '+' : ''}${moedaCaixa(item.diferenca)})</small></strong>
         </div>
-    `).join('');
+    `).join('') || '<p class="detail-note">Nenhuma forma de pagamento com movimento.</p>';
     const totalDiferenca = conferenciasPendentes.reduce((total, item) => total + item.diferenca, 0);
     document.getElementById('resumoConferencia').innerHTML = `
         <div class="review-list">
@@ -297,6 +332,7 @@ async function confirmarFechamentoCaixa() {
         });
         document.getElementById('modalConferencia').classList.remove('active');
         exibirMensagemCaixa(`Caixa #${caixaAtual.id_caixa} fechado e conferência registrada.`, 'success');
+        limparConferencia();
         await carregarPaginaCaixa();
     } catch (erro) {
         exibirMensagemCaixa(`Não foi possível fechar o caixa: ${erro.message}`, 'error');

@@ -1,7 +1,7 @@
 /* ==========================================================================
    CSS DO CONTROLE DE ESTOQUE
    ========================================================================== */
-@import url('global.css');
+/* global.css é carregado pelo <link> no HTML (evita download duplicado) */
 
 /* Estilos específicos adicionais do estoque se necessário */
 .product-code {

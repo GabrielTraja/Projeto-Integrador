@@ -1,7 +1,7 @@
 /* ==========================================================================
    CSS DA TELA DE LOGIN E CADASTRO RÁPIDO
    ========================================================================== */
-@import url('global.css');
+/* global.css é carregado pelo <link> no HTML (evita download duplicado) */
 
 body {
   margin: 0;
@@ -179,6 +179,28 @@ body {
   background-color: rgba(24, 88, 40, 0.12);
   color: #185828;
   border: 1px solid rgba(24, 88, 40, 0.3);
+}
+
+/* Telas de baixa altura (1366x768, 1280x720) */
+@media (max-height: 820px) {
+  body {
+    padding: 20px;
+  }
+
+  #caixaLogin {
+    padding: 26px 28px;
+  }
+
+  .brand-logo {
+    margin-bottom: 12px;
+  }
+}
+
+/* Monitores amplos */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  #caixaLogin {
+    max-width: 480px;
+  }
 }
 
 @media (max-width: 480px) {

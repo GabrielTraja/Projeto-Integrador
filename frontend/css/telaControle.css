@@ -1,13 +1,13 @@
 /* ==========================================================================
    CSS DA TELA DE CONTROLE / DASHBOARD
    ========================================================================== */
-@import url('global.css');
+/* global.css é carregado pelo <link> no HTML (evita download duplicado) */
 
 /* Container dos Cartões de Função */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(230px, 14vw, 300px), 1fr));
+  gap: var(--grid-gap);
   width: 100%;
 }
 
@@ -16,7 +16,7 @@
   background-color: #FFFFFF;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  padding: 28px 24px;
+  padding: clamp(20px, 2.6vh, 32px) clamp(16px, 1.4vw, 28px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,8 +87,8 @@
 }
 
 .settings-section {
-  margin-top: 40px;
-  padding: 28px;
+  margin-top: clamp(28px, 4vh, 48px);
+  padding: clamp(20px, 1.8vw, 36px);
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
@@ -109,6 +109,10 @@
 .settings-heading p {
   color: var(--text-muted);
   line-height: 1.5;
+}
+
+.settings-form {
+  max-width: 1200px;
 }
 
 .settings-fieldset {
@@ -253,6 +257,35 @@
 .settings-message-erro {
   background: rgba(248, 120, 8, 0.12);
   color: #502818;
+}
+
+/* Telas de baixa altura (1366x768, 1280x720) */
+@media (max-height: 820px) {
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+
+  .card-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .card-item p {
+    margin-bottom: 16px;
+  }
+}
+
+/* Monitores amplos: campos de configuração em três colunas */
+@media (min-width: 1800px) {
+  .settings-form {
+    max-width: 1500px;
+  }
+
+  .settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {

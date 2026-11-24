@@ -2,19 +2,25 @@
    PDV - FRENTE DE CAIXA (ESTILOS ESPECÍFICOS)
    ========================================================================== */
 
-/* Importa estilos e variáveis globais */
-@import url('global.css');
+/* Estilos e variáveis globais são carregados pelo <link> de global.css no HTML */
+
+/* Dimensões proporcionais do PDV */
+.pdv-content {
+    --pdv-gap: clamp(16px, 1.3vw, 28px);
+    --pdv-terminal-w: clamp(360px, 27vw, 500px);
+    --pdv-card-min: clamp(160px, 9.5vw, 220px);
+}
 
 /* =========================================
    ESTRUTURA PRINCIPAL E LAYOUT
    ========================================= */
 
 .pdv-content {
-    margin-left: 250px;
-    margin-top: 60px;
-    width: calc(100% - 250px);
-    min-height: calc(100vh - 60px);
-    padding: 24px 30px;
+    margin-left: var(--sidebar-atual);
+    margin-top: var(--header-h);
+    width: calc(100% - var(--sidebar-atual));
+    min-height: calc(100vh - var(--header-h));
+    padding: var(--content-py) var(--content-px);
     box-sizing: border-box;
     background-color: var(--bg-main);
     transition: margin-left 0.25s ease, width 0.25s ease;
@@ -29,8 +35,8 @@
 /* Grid com Catálogo na esquerda e Terminal à direita */
 .pdv-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 430px;
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) var(--pdv-terminal-w);
+    gap: var(--pdv-gap);
     align-items: start;
     width: 100%;
 }
@@ -68,7 +74,7 @@
     border: 1px solid rgba(32, 16, 8, 0.12);
     border-radius: 10px;
     padding: 14px 18px;
-    margin-bottom: 22px;
+    margin-bottom: clamp(14px, 2vh, 22px);
     box-shadow: 0 1px 3px rgba(32, 16, 8, 0.06);
 }
 
@@ -130,8 +136,8 @@
 
 .stock-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(var(--pdv-card-min), 1fr));
+    gap: clamp(12px, 1vw, 20px);
     align-items: stretch;
 }
 
@@ -194,7 +200,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 135px;
+    height: clamp(120px, 7.5vw, 170px);
     padding: 12px;
     background: #F8F4F0;
     border-bottom: 1px solid #F8F4F0;
@@ -334,17 +340,20 @@
 
 .pdv-terminal {
     position: sticky;
-    top: 80px; /* 60px do cabeçalho superior + 20px de respiro */
+    top: calc(var(--header-h) + var(--content-py)); /* cabeçalho superior + respiro */
     display: flex;
     flex-direction: column;
     min-width: 0;
-    height: calc(100vh - 100px);
-    height: calc(100dvh - 100px);
+    height: calc(100vh - var(--header-h) - 2 * var(--content-py));
+    height: calc(100dvh - var(--header-h) - 2 * var(--content-py));
+    min-height: 420px;
     background: #FFFFFF;
     border: 1px solid rgba(32, 16, 8, 0.12);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(32, 16, 8, 0.12);
-    overflow: hidden;
+    /* Rolagem interna apenas se a janela for baixa demais para o rodapé de pagamento */
+    overflow-x: hidden;
+    overflow-y: auto;
     z-index: 10;
 }
 
@@ -454,8 +463,8 @@
    ========================================= */
 
 .terminal-items {
-    flex: 1;
-    min-height: 120px;
+    flex: 1 1 auto;
+    min-height: 110px;
     overflow-y: auto;
     background-color: #FFFFFF;
 }
@@ -496,6 +505,7 @@
     font-weight: 600;
     color: #201008;
     line-height: 1.3;
+    overflow-wrap: anywhere;
 }
 
 .terminal-item-code {
@@ -797,15 +807,164 @@
    RESPONSIVIDADE E ADAPTAÇÃO
    ========================================= */
 
-@media (max-width: 1300px) {
-    .pdv-layout {
-        grid-template-columns: minmax(0, 1fr) 400px;
-        gap: 18px;
+/* Telas de baixa altura (1366x768, 1280x720): terminal compacto
+   para manter itens, totais e o botão de confirmação sempre visíveis */
+@media (max-height: 820px) {
+    .pdv-catalog .welcome-section {
+        margin-bottom: 14px;
     }
 
-    .stock-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 14px;
+    .pdv-catalog .welcome-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .pdv-catalog .filter-container {
+        padding: 10px 14px;
+    }
+
+    .terminal-header {
+        padding: 10px 14px;
+    }
+
+    .terminal-header p {
+        display: none;
+    }
+
+    .terminal-barcode {
+        padding: 8px 14px;
+    }
+
+    .terminal-barcode label,
+    .terminal-payment-field label {
+        margin-bottom: 4px;
+    }
+
+    .barcode-input-group input {
+        padding: 7px 10px;
+    }
+
+    .barcode-input-group button {
+        width: 34px;
+        height: 34px;
+    }
+
+    .terminal-table th,
+    .terminal-table td {
+        padding: 7px 6px;
+    }
+
+    .terminal-footer {
+        padding: 10px 14px;
+    }
+
+    .terminal-summary-row {
+        margin-bottom: 6px;
+    }
+
+    .terminal-subtotal {
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+    }
+
+    .terminal-subtotal strong {
+        font-size: 1.35rem;
+    }
+
+    .terminal-payment-group {
+        margin-bottom: 8px;
+    }
+
+    .select-payment,
+    .terminal-payment-field input {
+        padding: 6px 9px;
+    }
+
+    .terminal-change {
+        margin-bottom: 8px;
+        padding: 6px 10px;
+    }
+
+    .btn-finalizar {
+        padding: 10px;
+    }
+}
+
+/* Alturas muito baixas (1280x720 / 1366x768 com barra de tarefas e navegador):
+   compactação extra preservando todas as informações do terminal */
+@media (max-height: 680px) {
+    .pdv-content {
+        --content-py: 12px;
+    }
+
+    .terminal-header {
+        padding: 8px 14px;
+    }
+
+    .terminal-header h2 {
+        font-size: 1.05rem;
+    }
+
+    .terminal-summary-row {
+        margin-bottom: 4px;
+    }
+
+    .terminal-subtotal strong {
+        font-size: 1.25rem;
+    }
+
+    .pdv-venda-message {
+        margin-bottom: 6px;
+        padding: 6px 8px;
+        font-size: 11.5px;
+        line-height: 1.3;
+    }
+
+    .btn-finalizar {
+        padding: 9px;
+    }
+
+    .terminal-items {
+        min-height: 96px;
+    }
+}
+
+/* Terminal estreito (até ~390px): colunas da tabela de itens mais justas,
+   evitando rolagem horizontal */
+@media (max-width: 1500px) {
+    .terminal-table th,
+    .terminal-table td {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .terminal-table th:first-child,
+    .terminal-table td:first-child {
+        padding-left: 10px;
+    }
+}
+
+/* Monitores amplos: fontes do terminal um pouco maiores */
+@media (min-width: 1800px) and (min-height: 900px) {
+    .terminal-table {
+        font-size: 13px;
+    }
+
+    .terminal-summary-row {
+        font-size: 14px;
+    }
+
+    .terminal-subtotal strong {
+        font-size: 1.75rem;
+    }
+
+    .btn-finalizar {
+        padding: 14px;
+        font-size: 16px;
+    }
+
+    .product-name {
+        font-size: 15px;
+        height: 40px;
     }
 }
 
@@ -817,7 +976,9 @@
     .pdv-terminal {
         position: static;
         height: auto;
+        min-height: 0;
         max-height: none;
+        overflow: hidden;
         margin-top: 20px;
     }
 
@@ -828,8 +989,6 @@
 
 @media (max-width: 900px) {
     .pdv-content {
-        margin-left: 70px;
-        width: calc(100% - 70px);
         padding: 18px;
     }
 }

@@ -1,3 +1,11 @@
 node_modules/
 .env
 *.log
+# Licenciamento: a chave privada NUNCA deve ir para o repositório
+*.pem
+chave-privada*
+licencas-emitidas.csv
+
+# Instalador
+instalador/build/
+instalador/saida/
